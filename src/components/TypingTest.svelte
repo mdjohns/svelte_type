@@ -1,16 +1,26 @@
 <script>
+  import { onMount } from "svelte";
   import Timer from "./Timer.svelte";
+  import Toggle from "./Toggle.svelte";
+  import Overlay from "./Overlay.svelte";
   import DisplayWords from "./DisplayWords.svelte";
   let userInput = "";
-  let timerOn = false;
-  const testTime = 90;
+  let isActive = false;
+  const timeLimit = 90;
+  const apiUrl = "https://random-word-api.herokuapp.com/word?number=50";
+  let words = [];
 
-  // onmount fetch array of words and pass to DisplayWords
-  // allow user to select number of words and time limit
-  //
+  const toggle = () => {
+    isActive = !isActive;
+  };
+  //   onMount(async () => {
+  //     const res = await fetch(apiUrl);
+  //     words = await res.json();
+  //   });
 </script>
 
-<Timer timeLimit={testTime} isActive={timerOn} />
-<DisplayWords />
+<Timer {timeLimit} {isActive} />
+<DisplayWords {words} />
 <input type="text" id="user_input" bind:value={userInput} />
-<input type="checkbox" bind:checked={timerOn} />
+<button on:click={toggle}>Toggle</button>
+<Overlay />

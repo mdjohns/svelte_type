@@ -1,7 +1,6 @@
 <script>
   import { onMount, onDestroy, afterUpdate } from "svelte";
   import { tweened } from "svelte/motion";
-  import formatSeconds from "../utils/formatSeconds";
   export let timeLimit;
   export let isActive;
 
@@ -22,3 +21,4 @@
 <span class="secs">{seconds}</span>
 s
 <progress value={$timer / timeLimit} />
+<span>{isActive}</span>
