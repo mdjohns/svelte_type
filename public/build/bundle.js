@@ -134,6 +134,12 @@ var app = (function () {
     function detach(node) {
         node.parentNode.removeChild(node);
     }
+    function destroy_each(iterations, detaching) {
+        for (let i = 0; i < iterations.length; i += 1) {
+            if (iterations[i])
+                iterations[i].d(detaching);
+        }
+    }
     function element(name) {
         return document.createElement(name);
     }
@@ -152,6 +158,9 @@ var app = (function () {
             node.removeAttribute(attribute);
         else if (node.getAttribute(attribute) !== value)
             node.setAttribute(attribute, value);
+    }
+    function to_number(value) {
+        return value === '' ? undefined : +value;
     }
     function children(element) {
         return Array.from(element.childNodes);
@@ -438,6 +447,15 @@ var app = (function () {
         dispatch_dev("SvelteDOMSetData", { node: text, data });
         text.data = data;
     }
+    function validate_each_argument(arg) {
+        if (typeof arg !== 'string' && !(arg && typeof arg === 'object' && 'length' in arg)) {
+            let msg = '{#each} only iterates over array-like objects.';
+            if (typeof Symbol === 'function' && arg && Symbol.iterator in arg) {
+                msg += ' You can use a spread to convert this iterable into an array.';
+            }
+            throw new Error(msg);
+        }
+    }
     function validate_slots(name, slot, keys) {
         for (const slot_key of Object.keys(slot)) {
             if (!~keys.indexOf(slot_key)) {
@@ -617,6 +635,7 @@ var app = (function () {
     const file = "src/components/Timer.svelte";
 
     function create_fragment(ctx) {
+    	let div0;
     	let span0;
     	let t0;
     	let t1;
@@ -625,74 +644,68 @@ var app = (function () {
     	let span1;
     	let t4;
     	let t5;
+    	let t6;
+    	let div1;
     	let progress;
     	let progress_value_value;
-    	let t6;
-    	let span2;
-    	let t7;
 
     	const block = {
     		c: function create() {
+    			div0 = element("div");
     			span0 = element("span");
-    			t0 = text(/*minutes*/ ctx[3]);
+    			t0 = text(/*minutes*/ ctx[2]);
     			t1 = space();
-    			t2 = text(/*minname*/ ctx[4]);
+    			t2 = text(/*minname*/ ctx[3]);
     			t3 = space();
     			span1 = element("span");
-    			t4 = text(/*seconds*/ ctx[5]);
-    			t5 = text("\ns\n");
-    			progress = element("progress");
+    			t4 = text(/*seconds*/ ctx[4]);
+    			t5 = text("\n  s");
     			t6 = space();
-    			span2 = element("span");
-    			t7 = text(/*isActive*/ ctx[1]);
+    			div1 = element("div");
+    			progress = element("progress");
     			attr_dev(span0, "class", "mins");
-    			add_location(span0, file, 18, 0, 433);
+    			add_location(span0, file, 19, 2, 460);
     			attr_dev(span1, "class", "secs");
-    			add_location(span1, file, 20, 0, 479);
-    			progress.value = progress_value_value = /*$timer*/ ctx[2] / /*timeLimit*/ ctx[0];
-    			add_location(progress, file, 22, 0, 517);
-    			add_location(span2, file, 23, 0, 557);
+    			add_location(span1, file, 21, 2, 510);
+    			attr_dev(div0, "class", "timer-item");
+    			add_location(div0, file, 18, 0, 433);
+    			progress.value = progress_value_value = /*$timer*/ ctx[1] / /*timeLimit*/ ctx[0];
+    			add_location(progress, file, 25, 2, 584);
+    			attr_dev(div1, "class", "timer-item");
+    			add_location(div1, file, 24, 0, 557);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, span0, anchor);
+    			insert_dev(target, div0, anchor);
+    			append_dev(div0, span0);
     			append_dev(span0, t0);
-    			insert_dev(target, t1, anchor);
-    			insert_dev(target, t2, anchor);
-    			insert_dev(target, t3, anchor);
-    			insert_dev(target, span1, anchor);
+    			append_dev(div0, t1);
+    			append_dev(div0, t2);
+    			append_dev(div0, t3);
+    			append_dev(div0, span1);
     			append_dev(span1, t4);
-    			insert_dev(target, t5, anchor);
-    			insert_dev(target, progress, anchor);
+    			append_dev(div0, t5);
     			insert_dev(target, t6, anchor);
-    			insert_dev(target, span2, anchor);
-    			append_dev(span2, t7);
+    			insert_dev(target, div1, anchor);
+    			append_dev(div1, progress);
     		},
     		p: function update(ctx, [dirty]) {
-    			if (dirty & /*minutes*/ 8) set_data_dev(t0, /*minutes*/ ctx[3]);
-    			if (dirty & /*minname*/ 16) set_data_dev(t2, /*minname*/ ctx[4]);
-    			if (dirty & /*seconds*/ 32) set_data_dev(t4, /*seconds*/ ctx[5]);
+    			if (dirty & /*minutes*/ 4) set_data_dev(t0, /*minutes*/ ctx[2]);
+    			if (dirty & /*minname*/ 8) set_data_dev(t2, /*minname*/ ctx[3]);
+    			if (dirty & /*seconds*/ 16) set_data_dev(t4, /*seconds*/ ctx[4]);
 
-    			if (dirty & /*$timer, timeLimit*/ 5 && progress_value_value !== (progress_value_value = /*$timer*/ ctx[2] / /*timeLimit*/ ctx[0])) {
+    			if (dirty & /*$timer, timeLimit*/ 3 && progress_value_value !== (progress_value_value = /*$timer*/ ctx[1] / /*timeLimit*/ ctx[0])) {
     				prop_dev(progress, "value", progress_value_value);
     			}
-
-    			if (dirty & /*isActive*/ 2) set_data_dev(t7, /*isActive*/ ctx[1]);
     		},
     		i: noop,
     		o: noop,
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(span0);
-    			if (detaching) detach_dev(t1);
-    			if (detaching) detach_dev(t2);
-    			if (detaching) detach_dev(t3);
-    			if (detaching) detach_dev(span1);
-    			if (detaching) detach_dev(t5);
-    			if (detaching) detach_dev(progress);
+    			if (detaching) detach_dev(div0);
     			if (detaching) detach_dev(t6);
-    			if (detaching) detach_dev(span2);
+    			if (detaching) detach_dev(div1);
     		}
     	};
 
@@ -713,7 +726,7 @@ var app = (function () {
     	let { isActive } = $$props;
     	let timer = tweened(timeLimit);
     	validate_store(timer, "timer");
-    	component_subscribe($$self, timer, value => $$invalidate(2, $timer = value));
+    	component_subscribe($$self, timer, value => $$invalidate(1, $timer = value));
 
     	setInterval(
     		() => {
@@ -735,7 +748,7 @@ var app = (function () {
 
     	$$self.$$set = $$props => {
     		if ("timeLimit" in $$props) $$invalidate(0, timeLimit = $$props.timeLimit);
-    		if ("isActive" in $$props) $$invalidate(1, isActive = $$props.isActive);
+    		if ("isActive" in $$props) $$invalidate(6, isActive = $$props.isActive);
     	};
 
     	$$self.$capture_state = () => ({
@@ -754,11 +767,11 @@ var app = (function () {
 
     	$$self.$inject_state = $$props => {
     		if ("timeLimit" in $$props) $$invalidate(0, timeLimit = $$props.timeLimit);
-    		if ("isActive" in $$props) $$invalidate(1, isActive = $$props.isActive);
-    		if ("timer" in $$props) $$invalidate(6, timer = $$props.timer);
-    		if ("minutes" in $$props) $$invalidate(3, minutes = $$props.minutes);
-    		if ("minname" in $$props) $$invalidate(4, minname = $$props.minname);
-    		if ("seconds" in $$props) $$invalidate(5, seconds = $$props.seconds);
+    		if ("isActive" in $$props) $$invalidate(6, isActive = $$props.isActive);
+    		if ("timer" in $$props) $$invalidate(5, timer = $$props.timer);
+    		if ("minutes" in $$props) $$invalidate(2, minutes = $$props.minutes);
+    		if ("minname" in $$props) $$invalidate(3, minname = $$props.minname);
+    		if ("seconds" in $$props) $$invalidate(4, seconds = $$props.seconds);
     	};
 
     	let minutes;
@@ -770,26 +783,26 @@ var app = (function () {
     	}
 
     	$$self.$$.update = () => {
-    		if ($$self.$$.dirty & /*$timer*/ 4) {
-    			 $$invalidate(3, minutes = Math.floor($timer / 60));
+    		if ($$self.$$.dirty & /*$timer*/ 2) {
+    			 $$invalidate(2, minutes = Math.floor($timer / 60));
     		}
 
-    		if ($$self.$$.dirty & /*minutes*/ 8) {
-    			 $$invalidate(4, minname = minutes > 1 ? "mins" : "min");
+    		if ($$self.$$.dirty & /*minutes*/ 4) {
+    			 $$invalidate(3, minname = minutes > 1 ? "mins" : "min");
     		}
 
-    		if ($$self.$$.dirty & /*$timer, minutes*/ 12) {
-    			 $$invalidate(5, seconds = Math.floor($timer - minutes * 60));
+    		if ($$self.$$.dirty & /*$timer, minutes*/ 6) {
+    			 $$invalidate(4, seconds = Math.floor($timer - minutes * 60));
     		}
     	};
 
-    	return [timeLimit, isActive, $timer, minutes, minname, seconds, timer];
+    	return [timeLimit, $timer, minutes, minname, seconds, timer, isActive];
     }
 
     class Timer extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance, create_fragment, safe_not_equal, { timeLimit: 0, isActive: 1 });
+    		init(this, options, instance, create_fragment, safe_not_equal, { timeLimit: 0, isActive: 6 });
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
@@ -805,7 +818,7 @@ var app = (function () {
     			console.warn("<Timer> was created without expected prop 'timeLimit'");
     		}
 
-    		if (/*isActive*/ ctx[1] === undefined && !("isActive" in props)) {
+    		if (/*isActive*/ ctx[6] === undefined && !("isActive" in props)) {
     			console.warn("<Timer> was created without expected prop 'isActive'");
     		}
     	}
@@ -938,26 +951,77 @@ var app = (function () {
     const file$1 = "src/components/Overlay.svelte";
 
     function create_fragment$2(ctx) {
-    	let div;
+    	let div1;
+    	let div0;
+    	let h1;
+    	let t1;
+    	let label;
+    	let input;
+    	let t2;
+    	let button;
+    	let mounted;
+    	let dispose;
 
     	const block = {
     		c: function create() {
-    			div = element("div");
-    			div.textContent = "Testing 123!";
-    			attr_dev(div, "class", "overlay svelte-16oinyp");
-    			add_location(div, file$1, 20, 0, 294);
+    			div1 = element("div");
+    			div0 = element("div");
+    			h1 = element("h1");
+    			h1.textContent = "Svelte Type";
+    			t1 = space();
+    			label = element("label");
+    			input = element("input");
+    			t2 = space();
+    			button = element("button");
+    			button.textContent = "Start";
+    			add_location(h1, file$1, 47, 4, 830);
+    			attr_dev(input, "type", "number");
+    			attr_dev(input, "min", "1");
+    			attr_dev(input, "max", "5");
+    			attr_dev(input, "placeholder", "Time Limit (minutes)");
+    			add_location(input, file$1, 49, 6, 869);
+    			add_location(label, file$1, 48, 4, 855);
+    			add_location(button, file$1, 56, 4, 1024);
+    			attr_dev(div0, "class", "overlay-content svelte-8is1wc");
+    			add_location(div0, file$1, 46, 2, 796);
+    			attr_dev(div1, "class", "overlay svelte-8is1wc");
+    			attr_dev(div1, "style", "styleToggle");
+    			add_location(div1, file$1, 45, 0, 752);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, div, anchor);
+    			insert_dev(target, div1, anchor);
+    			append_dev(div1, div0);
+    			append_dev(div0, h1);
+    			append_dev(div0, t1);
+    			append_dev(div0, label);
+    			append_dev(label, input);
+    			set_input_value(input, /*timeLimit*/ ctx[0]);
+    			append_dev(div0, t2);
+    			append_dev(div0, button);
+
+    			if (!mounted) {
+    				dispose = [
+    					listen_dev(input, "input", /*input_input_handler*/ ctx[2]),
+    					listen_dev(button, "click", /*toggleOverlay*/ ctx[1], false, false, false)
+    				];
+
+    				mounted = true;
+    			}
     		},
-    		p: noop,
+    		p: function update(ctx, [dirty]) {
+    			if (dirty & /*timeLimit*/ 1 && to_number(input.value) !== /*timeLimit*/ ctx[0]) {
+    				set_input_value(input, /*timeLimit*/ ctx[0]);
+    			}
+    		},
     		i: noop,
     		o: noop,
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(div);
+    			if (detaching) detach_dev(div1);
+    			mounted = false;
+    			run_all(dispose);
     		}
     	};
 
@@ -972,7 +1036,16 @@ var app = (function () {
     	return block;
     }
 
-    function instance$2($$self, $$props) {
+    function instance$2($$self, $$props, $$invalidate) {
+    	let timeLimit;
+    	let styleToggle = "";
+
+    	const toggleOverlay = () => {
+    		if (styleToggle !== "") {
+    			styleToggle = "width: 0";
+    		}
+    	};
+
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
@@ -981,7 +1054,24 @@ var app = (function () {
 
     	let { $$slots = {}, $$scope } = $$props;
     	validate_slots("Overlay", $$slots, []);
-    	return [];
+
+    	function input_input_handler() {
+    		timeLimit = to_number(this.value);
+    		$$invalidate(0, timeLimit);
+    	}
+
+    	$$self.$capture_state = () => ({ timeLimit, styleToggle, toggleOverlay });
+
+    	$$self.$inject_state = $$props => {
+    		if ("timeLimit" in $$props) $$invalidate(0, timeLimit = $$props.timeLimit);
+    		if ("styleToggle" in $$props) styleToggle = $$props.styleToggle;
+    	};
+
+    	if ($$props && "$$inject" in $$props) {
+    		$$self.$inject_state($$props.$$inject);
+    	}
+
+    	return [timeLimit, toggleOverlay, input_input_handler];
     }
 
     class Overlay extends SvelteComponentDev {
@@ -1002,32 +1092,109 @@ var app = (function () {
 
     const file$2 = "src/components/DisplayWords.svelte";
 
-    function create_fragment$3(ctx) {
-    	let textarea;
-    	let textarea_value_value;
+    function get_each_context(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[1] = list[i];
+    	return child_ctx;
+    }
+
+    // (18:2) {#each words as word}
+    function create_each_block(ctx) {
+    	let span;
+    	let t_value = /*word*/ ctx[1] + "";
+    	let t;
 
     	const block = {
     		c: function create() {
-    			textarea = element("textarea");
-    			attr_dev(textarea, "id", "words");
-    			textarea.value = textarea_value_value = /*words*/ ctx[0].join(" ");
-    			add_location(textarea, file$2, 4, 0, 40);
+    			span = element("span");
+    			t = text(t_value);
+    			add_location(span, file$2, 18, 4, 293);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, span, anchor);
+    			append_dev(span, t);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*words*/ 1 && t_value !== (t_value = /*word*/ ctx[1] + "")) set_data_dev(t, t_value);
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(span);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_each_block.name,
+    		type: "each",
+    		source: "(18:2) {#each words as word}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function create_fragment$3(ctx) {
+    	let div;
+    	let each_value = /*words*/ ctx[0];
+    	validate_each_argument(each_value);
+    	let each_blocks = [];
+
+    	for (let i = 0; i < each_value.length; i += 1) {
+    		each_blocks[i] = create_each_block(get_each_context(ctx, each_value, i));
+    	}
+
+    	const block = {
+    		c: function create() {
+    			div = element("div");
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			attr_dev(div, "id", "words");
+    			attr_dev(div, "class", "svelte-1lwdy9e");
+    			add_location(div, file$2, 16, 0, 248);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, textarea, anchor);
+    			insert_dev(target, div, anchor);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].m(div, null);
+    			}
     		},
     		p: function update(ctx, [dirty]) {
-    			if (dirty & /*words*/ 1 && textarea_value_value !== (textarea_value_value = /*words*/ ctx[0].join(" "))) {
-    				prop_dev(textarea, "value", textarea_value_value);
+    			if (dirty & /*words*/ 1) {
+    				each_value = /*words*/ ctx[0];
+    				validate_each_argument(each_value);
+    				let i;
+
+    				for (i = 0; i < each_value.length; i += 1) {
+    					const child_ctx = get_each_context(ctx, each_value, i);
+
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(child_ctx, dirty);
+    					} else {
+    						each_blocks[i] = create_each_block(child_ctx);
+    						each_blocks[i].c();
+    						each_blocks[i].m(div, null);
+    					}
+    				}
+
+    				for (; i < each_blocks.length; i += 1) {
+    					each_blocks[i].d(1);
+    				}
+
+    				each_blocks.length = each_value.length;
     			}
     		},
     		i: noop,
     		o: noop,
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(textarea);
+    			if (detaching) detach_dev(div);
+    			destroy_each(each_blocks, detaching);
     		}
     	};
 
@@ -1099,19 +1266,60 @@ var app = (function () {
     	}
     }
 
+    const data = ["mislocate", "paleae", "festooning", "arciform", "mastectomies", "sterlings", "charily", "defoamers", "legating", "leses", "dopa", "neuronal", "firn", "transmogrified", "outvaunt", "cacomixls", "telfords", "kerchiefed", "smolts", "industrialist", "ecesic", "footfaults", "unstacked", "stewarded", "paella", "cantina", "alpacas", "superhardened", "murrhine", "stairwells", "imbody", "disembogued", "bandleaders", "andalusites", "engirdled", "forgets", "cottonmouth", "yapok", "monolithically", "globalising", "flailing", "permuted", "cullers", "scorner", "enders", "panzer", "alpenglow", "enrollments", "inflexion", "spreads"];
+
     /* src/components/TypingTest.svelte generated by Svelte v3.24.1 */
     const file$3 = "src/components/TypingTest.svelte";
 
-    function create_fragment$4(ctx) {
-    	let timer;
-    	let t0;
-    	let displaywords;
-    	let t1;
-    	let input;
-    	let t2;
+    // (47:2) {#if isActive === false}
+    function create_if_block(ctx) {
     	let button;
+    	let mounted;
+    	let dispose;
+
+    	const block = {
+    		c: function create() {
+    			button = element("button");
+    			button.textContent = "Start Test";
+    			add_location(button, file$3, 47, 4, 1107);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, button, anchor);
+
+    			if (!mounted) {
+    				dispose = listen_dev(button, "click", /*toggle*/ ctx[2], false, false, false);
+    				mounted = true;
+    			}
+    		},
+    		p: noop,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(button);
+    			mounted = false;
+    			dispose();
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block.name,
+    		type: "if",
+    		source: "(47:2) {#if isActive === false}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function create_fragment$4(ctx) {
+    	let div;
+    	let h1;
+    	let t1;
+    	let timer;
+    	let t2;
+    	let displaywords;
+    	let t3;
+    	let input;
     	let t4;
-    	let overlay;
     	let current;
     	let mounted;
     	let dispose;
@@ -1121,52 +1329,49 @@ var app = (function () {
     			$$inline: true
     		});
 
-    	displaywords = new DisplayWords({
-    			props: { words: /*words*/ ctx[2] },
-    			$$inline: true
-    		});
-
-    	overlay = new Overlay({ $$inline: true });
+    	displaywords = new DisplayWords({ props: { words: data }, $$inline: true });
+    	let if_block = /*isActive*/ ctx[1] === false && create_if_block(ctx);
 
     	const block = {
     		c: function create() {
-    			create_component(timer.$$.fragment);
-    			t0 = space();
-    			create_component(displaywords.$$.fragment);
+    			div = element("div");
+    			h1 = element("h1");
+    			h1.textContent = "Typing Test";
     			t1 = space();
-    			input = element("input");
+    			create_component(timer.$$.fragment);
     			t2 = space();
-    			button = element("button");
-    			button.textContent = "Toggle";
+    			create_component(displaywords.$$.fragment);
+    			t3 = space();
+    			input = element("input");
     			t4 = space();
-    			create_component(overlay.$$.fragment);
+    			if (if_block) if_block.c();
+    			add_location(h1, file$3, 41, 2, 929);
     			attr_dev(input, "type", "text");
     			attr_dev(input, "id", "user_input");
-    			add_location(input, file$3, 23, 0, 621);
-    			add_location(button, file$3, 24, 0, 682);
+    			add_location(input, file$3, 44, 2, 1014);
+    			attr_dev(div, "id", "test");
+    			attr_dev(div, "class", "svelte-5p20sc");
+    			add_location(div, file$3, 40, 0, 911);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
-    			mount_component(timer, target, anchor);
-    			insert_dev(target, t0, anchor);
-    			mount_component(displaywords, target, anchor);
-    			insert_dev(target, t1, anchor);
-    			insert_dev(target, input, anchor);
+    			insert_dev(target, div, anchor);
+    			append_dev(div, h1);
+    			append_dev(div, t1);
+    			mount_component(timer, div, null);
+    			append_dev(div, t2);
+    			mount_component(displaywords, div, null);
+    			append_dev(div, t3);
+    			append_dev(div, input);
     			set_input_value(input, /*userInput*/ ctx[0]);
-    			insert_dev(target, t2, anchor);
-    			insert_dev(target, button, anchor);
-    			insert_dev(target, t4, anchor);
-    			mount_component(overlay, target, anchor);
+    			append_dev(div, t4);
+    			if (if_block) if_block.m(div, null);
     			current = true;
 
     			if (!mounted) {
-    				dispose = [
-    					listen_dev(input, "input", /*input_input_handler*/ ctx[4]),
-    					listen_dev(button, "click", /*toggle*/ ctx[3], false, false, false)
-    				];
-
+    				dispose = listen_dev(input, "input", /*input_input_handler*/ ctx[3]);
     				mounted = true;
     			}
     		},
@@ -1178,32 +1383,38 @@ var app = (function () {
     			if (dirty & /*userInput*/ 1 && input.value !== /*userInput*/ ctx[0]) {
     				set_input_value(input, /*userInput*/ ctx[0]);
     			}
+
+    			if (/*isActive*/ ctx[1] === false) {
+    				if (if_block) {
+    					if_block.p(ctx, dirty);
+    				} else {
+    					if_block = create_if_block(ctx);
+    					if_block.c();
+    					if_block.m(div, null);
+    				}
+    			} else if (if_block) {
+    				if_block.d(1);
+    				if_block = null;
+    			}
     		},
     		i: function intro(local) {
     			if (current) return;
     			transition_in(timer.$$.fragment, local);
     			transition_in(displaywords.$$.fragment, local);
-    			transition_in(overlay.$$.fragment, local);
     			current = true;
     		},
     		o: function outro(local) {
     			transition_out(timer.$$.fragment, local);
     			transition_out(displaywords.$$.fragment, local);
-    			transition_out(overlay.$$.fragment, local);
     			current = false;
     		},
     		d: function destroy(detaching) {
-    			destroy_component(timer, detaching);
-    			if (detaching) detach_dev(t0);
-    			destroy_component(displaywords, detaching);
-    			if (detaching) detach_dev(t1);
-    			if (detaching) detach_dev(input);
-    			if (detaching) detach_dev(t2);
-    			if (detaching) detach_dev(button);
-    			if (detaching) detach_dev(t4);
-    			destroy_component(overlay, detaching);
+    			if (detaching) detach_dev(div);
+    			destroy_component(timer);
+    			destroy_component(displaywords);
+    			if (if_block) if_block.d();
     			mounted = false;
-    			run_all(dispose);
+    			dispose();
     		}
     	};
 
@@ -1219,13 +1430,14 @@ var app = (function () {
     }
 
     const timeLimit = 90;
-    const apiUrl = "https://random-word-api.herokuapp.com/word?number=50";
+    const numWords = 50;
 
     function instance$4($$self, $$props, $$invalidate) {
     	let userInput = "";
     	let isActive = false;
-    	let words = [];
+    	const apiUrl = `https://random-word-api.herokuapp.com/word?number=${numWords}`;
 
+    	//let words = [];
     	const toggle = () => {
     		$$invalidate(1, isActive = !isActive);
     	};
@@ -1250,25 +1462,25 @@ var app = (function () {
     		Toggle,
     		Overlay,
     		DisplayWords,
+    		words: data,
     		userInput,
     		isActive,
     		timeLimit,
+    		numWords,
     		apiUrl,
-    		words,
     		toggle
     	});
 
     	$$self.$inject_state = $$props => {
     		if ("userInput" in $$props) $$invalidate(0, userInput = $$props.userInput);
     		if ("isActive" in $$props) $$invalidate(1, isActive = $$props.isActive);
-    		if ("words" in $$props) $$invalidate(2, words = $$props.words);
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [userInput, isActive, words, toggle, input_input_handler];
+    	return [userInput, isActive, toggle, input_input_handler];
     }
 
     class TypingTest extends SvelteComponentDev {
@@ -1290,8 +1502,6 @@ var app = (function () {
 
     function create_fragment$5(ctx) {
     	let main;
-    	let h1;
-    	let t1;
     	let typingtest;
     	let current;
     	typingtest = new TypingTest({ $$inline: true });
@@ -1299,20 +1509,14 @@ var app = (function () {
     	const block = {
     		c: function create() {
     			main = element("main");
-    			h1 = element("h1");
-    			h1.textContent = "Typing Test";
-    			t1 = space();
     			create_component(typingtest.$$.fragment);
-    			add_location(h1, file$4, 6, 2, 107);
-    			add_location(main, file$4, 5, 0, 98);
+    			add_location(main, file$4, 4, 0, 79);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, main, anchor);
-    			append_dev(main, h1);
-    			append_dev(main, t1);
     			mount_component(typingtest, main, null);
     			current = true;
     		},
@@ -1344,8 +1548,7 @@ var app = (function () {
     }
 
     function instance$5($$self, $$props, $$invalidate) {
-    	let { name } = $$props;
-    	const writable_props = ["name"];
+    	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<App> was created with unknown prop '${key}'`);
@@ -1353,28 +1556,14 @@ var app = (function () {
 
     	let { $$slots = {}, $$scope } = $$props;
     	validate_slots("App", $$slots, []);
-
-    	$$self.$$set = $$props => {
-    		if ("name" in $$props) $$invalidate(0, name = $$props.name);
-    	};
-
-    	$$self.$capture_state = () => ({ TypingTest, name });
-
-    	$$self.$inject_state = $$props => {
-    		if ("name" in $$props) $$invalidate(0, name = $$props.name);
-    	};
-
-    	if ($$props && "$$inject" in $$props) {
-    		$$self.$inject_state($$props.$$inject);
-    	}
-
-    	return [name];
+    	$$self.$capture_state = () => ({ TypingTest });
+    	return [];
     }
 
     class App extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$5, create_fragment$5, safe_not_equal, { name: 0 });
+    		init(this, options, instance$5, create_fragment$5, safe_not_equal, {});
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
@@ -1382,21 +1571,6 @@ var app = (function () {
     			options,
     			id: create_fragment$5.name
     		});
-
-    		const { ctx } = this.$$;
-    		const props = options.props || {};
-
-    		if (/*name*/ ctx[0] === undefined && !("name" in props)) {
-    			console.warn("<App> was created without expected prop 'name'");
-    		}
-    	}
-
-    	get name() {
-    		throw new Error("<App>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set name(value) {
-    		throw new Error("<App>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
     }
 

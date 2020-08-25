@@ -16,9 +16,12 @@
   $: seconds = Math.floor($timer - minutes * 60);
 </script>
 
-<span class="mins">{minutes}</span>
-{minname}
-<span class="secs">{seconds}</span>
-s
-<progress value={$timer / timeLimit} />
-<span>{isActive}</span>
+<div class="timer-item">
+  <span class="mins">{minutes}</span>
+  {minname}
+  <span class="secs">{seconds}</span>
+  s
+</div>
+<div class="timer-item">
+  <progress value={$timer / timeLimit} />
+</div>
