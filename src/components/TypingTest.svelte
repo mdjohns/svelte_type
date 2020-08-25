@@ -1,25 +1,34 @@
 <script>
   import { onMount } from "svelte";
-  import Timer from "./Timer.svelte";
-  import Toggle from "./Toggle.svelte";
-  import Overlay from "./Overlay.svelte";
-  import DisplayWords from "./DisplayWords.svelte";
-  import words from "./testApiData";
-  let userInput = "";
-  let isActive = false;
-  const timeLimit = 90;
+  import { isActive } from "./utils/stores";
+  import Timer from "./Timer/Timer.svelte";
+  import TestForm from "./Words/TestForm.svelte";
 
+  //TEST DATA
+  import words from "./utils/testApiData";
+
+  let isActive_value;
+  const unsubscribe = isActive.subscribe((val) => (isActive_value = val));
+  const timeLimit = 90;
   const numWords = 50;
   const apiUrl = `https://random-word-api.herokuapp.com/word?number=${numWords}`;
   //let words = [];
-
-  const toggle = () => {
-    isActive = !isActive;
-  };
+  let wordObjArr;
   // onMount(async () => {
   //   const res = await fetch(apiUrl);
   //   words = await res.json();
   // });
+
+  onMount(() => {
+    wordObjArr = words.map((word, i) => {
+      return {
+        word: word,
+        isCorrect: null,
+        isActive: false,
+      };
+    });
+    wordObjArr[0].isActive = true;
+  });
 </script>
 
 <style>
@@ -40,11 +49,14 @@
 
 <div id="test">
   <h1>Typing Test</h1>
-  <Timer {timeLimit} {isActive} />
-  <DisplayWords {words} />
-  <input type="text" id="user_input" bind:value={userInput} />
+  <Timer {timeLimit} isActive={isActive_value} />
+  <TestForm words={wordObjArr} />
 
-  {#if isActive === false}
-    <button on:click={toggle}>Start Test</button>
-  {/if}
+  <div id="help_text">
+    <p>
+      Press
+      <strong>Enter</strong>
+      to skip the current word.
+    </p>
+  </div>
 </div>
