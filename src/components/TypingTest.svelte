@@ -52,6 +52,8 @@
   <Timer {timeLimit} isActive={isActive_value} />
   <TestForm words={wordObjArr} />
 
+  <div>Begin typing to start the test!</div>
+
   <div id="help_text">
     <p>
       Press

@@ -11,6 +11,10 @@
     correct: 0,
   };
 
+  onMount(() => {
+    document.getElementById("user_input").focus();
+  });
+
   const startTimer = () => {
     isActive.update((val) => (val = true));
   };
