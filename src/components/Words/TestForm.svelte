@@ -39,7 +39,7 @@
       userInput = "";
       stats.numWords++;
       if (stats.numWords !== words.length) {
-        words[stats.numWords + 1].isActive = true;
+        words[stats.numWords].isActive = true;
         //TODO: handle case where we run out of words before end of timer
       }
     }

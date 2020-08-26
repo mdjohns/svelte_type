@@ -1196,8 +1196,8 @@ var app = (function () {
     			attr_dev(input, "autocomplete", "false");
     			attr_dev(input, "data-lpignore", "true");
     			attr_dev(input, "class", "svelte-11pzvzl");
-    			add_location(input, file$2, 57, 2, 1370);
-    			add_location(div, file$2, 56, 0, 1362);
+    			add_location(input, file$2, 57, 2, 1366);
+    			add_location(div, file$2, 56, 0, 1358);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -1297,7 +1297,7 @@ var app = (function () {
     			stats.numWords++;
 
     			if (stats.numWords !== words.length) {
-    				$$invalidate(0, words[stats.numWords + 1].isActive = true, words);
+    				$$invalidate(0, words[stats.numWords].isActive = true, words);
     			} //TODO: handle case where we run out of words before end of timer
     		}
     	};
