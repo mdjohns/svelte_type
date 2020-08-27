@@ -875,7 +875,7 @@ var app = (function () {
     			toggle_class(span, "active", /*isActive*/ ctx[2]);
     			toggle_class(span, "incorrect", /*isCorrect*/ ctx[1] === false);
     			toggle_class(span, "correct", /*isCorrect*/ ctx[1] === true);
-    			add_location(span, file$1, 23, 0, 313);
+    			add_location(span, file$1, 28, 0, 425);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -883,6 +883,7 @@ var app = (function () {
     		m: function mount(target, anchor) {
     			insert_dev(target, span, anchor);
     			append_dev(span, t);
+    			/*span_binding*/ ctx[4](span);
     		},
     		p: function update(ctx, [dirty]) {
     			if (dirty & /*word*/ 1) set_data_dev(t, /*word*/ ctx[0]);
@@ -903,6 +904,7 @@ var app = (function () {
     		o: noop,
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(span);
+    			/*span_binding*/ ctx[4](null);
     		}
     	};
 
@@ -921,6 +923,12 @@ var app = (function () {
     	let { word } = $$props;
     	let { isCorrect } = $$props;
     	let { isActive } = $$props;
+    	let wordElement;
+
+    	afterUpdate(() => {
+    		isActive ? wordElement.scrollIntoView(false) : "";
+    	});
+
     	const writable_props = ["word", "isCorrect", "isActive"];
 
     	Object.keys($$props).forEach(key => {
@@ -930,25 +938,40 @@ var app = (function () {
     	let { $$slots = {}, $$scope } = $$props;
     	validate_slots("Word", $$slots, []);
 
+    	function span_binding($$value) {
+    		binding_callbacks[$$value ? "unshift" : "push"](() => {
+    			wordElement = $$value;
+    			$$invalidate(3, wordElement);
+    		});
+    	}
+
     	$$self.$$set = $$props => {
     		if ("word" in $$props) $$invalidate(0, word = $$props.word);
     		if ("isCorrect" in $$props) $$invalidate(1, isCorrect = $$props.isCorrect);
     		if ("isActive" in $$props) $$invalidate(2, isActive = $$props.isActive);
     	};
 
-    	$$self.$capture_state = () => ({ afterUpdate, word, isCorrect, isActive });
+    	$$self.$capture_state = () => ({
+    		afterUpdate,
+    		onMount,
+    		word,
+    		isCorrect,
+    		isActive,
+    		wordElement
+    	});
 
     	$$self.$inject_state = $$props => {
     		if ("word" in $$props) $$invalidate(0, word = $$props.word);
     		if ("isCorrect" in $$props) $$invalidate(1, isCorrect = $$props.isCorrect);
     		if ("isActive" in $$props) $$invalidate(2, isActive = $$props.isActive);
+    		if ("wordElement" in $$props) $$invalidate(3, wordElement = $$props.wordElement);
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [word, isCorrect, isActive];
+    	return [word, isCorrect, isActive, wordElement, span_binding];
     }
 
     class Word extends SvelteComponentDev {
@@ -1013,7 +1036,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (23:2) {#each words as word}
+    // (24:2) {#each words as word}
     function create_each_block(ctx) {
     	let word;
     	let t;
@@ -1033,7 +1056,7 @@ var app = (function () {
     			create_component(word.$$.fragment);
     			t = space();
     			br = element("br");
-    			add_location(br, file$2, 24, 4, 490);
+    			add_location(br, file$2, 25, 4, 536);
     		},
     		m: function mount(target, anchor) {
     			mount_component(word, target, anchor);
@@ -1068,7 +1091,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(23:2) {#each words as word}",
+    		source: "(24:2) {#each words as word}",
     		ctx
     	});
 
@@ -1099,8 +1122,8 @@ var app = (function () {
     			}
 
     			attr_dev(div, "id", "words");
-    			attr_dev(div, "class", "svelte-15zsl6q");
-    			add_location(div, file$2, 21, 0, 422);
+    			attr_dev(div, "class", "svelte-allzgk");
+    			add_location(div, file$2, 22, 0, 468);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -1198,6 +1221,7 @@ var app = (function () {
     		beforeUpdate,
     		onMount,
     		Timer,
+    		isActive,
     		Word,
     		words
     	});

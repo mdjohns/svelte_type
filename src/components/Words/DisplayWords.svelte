@@ -1,6 +1,7 @@
 <script>
   import { afterUpdate, beforeUpdate, onMount } from "svelte";
   import Timer from "../Timer/Timer.svelte";
+  import { isActive } from "../utils/stores";
   import Word from "../Words/Word.svelte";
 
   export let words = [];
@@ -13,7 +14,7 @@
     overflow: hidden;
     user-select: none;
     -moz-user-select: none;
-    -wekbit-user-select: none;
+    -webkit-user-select: none;
     border: 1px solid black;
     border-radius: 4px;
   }

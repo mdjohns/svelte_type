@@ -1,8 +1,13 @@
 <script>
-  import { afterUpdate } from "svelte";
+  import { afterUpdate, onMount } from "svelte";
   export let word;
   export let isCorrect;
   export let isActive;
+
+  let wordElement;
+  afterUpdate(() => {
+    isActive ? wordElement.scrollIntoView(false) : "";
+  });
 </script>
 
 <style>
@@ -22,6 +27,7 @@
 </style>
 
 <span
+  bind:this={wordElement}
   class:active={isActive}
   class:incorrect={isCorrect === false}
   class:correct={isCorrect === true}>
