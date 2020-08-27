@@ -126,9 +126,6 @@ var app = (function () {
     function children(element) {
         return Array.from(element.childNodes);
     }
-    function set_input_value(input, value) {
-        input.value = value == null ? '' : value;
-    }
     function toggle_class(element, name, toggle) {
         element.classList[toggle ? 'add' : 'remove'](name);
     }
@@ -556,6 +553,7 @@ var app = (function () {
     }
 
     const isActive = writable(false);
+    const isComplete = writable(false);
 
     function is_date(obj) {
         return Object.prototype.toString.call(obj) === '[object Date]';
@@ -689,15 +687,15 @@ var app = (function () {
     			div1 = element("div");
     			progress = element("progress");
     			attr_dev(span0, "class", "mins");
-    			add_location(span0, file, 19, 2, 460);
+    			add_location(span0, file, 28, 2, 665);
     			attr_dev(span1, "class", "secs");
-    			add_location(span1, file, 21, 2, 510);
+    			add_location(span1, file, 30, 2, 715);
     			attr_dev(div0, "class", "timer-item");
-    			add_location(div0, file, 18, 0, 433);
+    			add_location(div0, file, 27, 0, 638);
     			progress.value = progress_value_value = /*$timer*/ ctx[1] / /*timeLimit*/ ctx[0];
-    			add_location(progress, file, 25, 2, 584);
+    			add_location(progress, file, 34, 2, 789);
     			attr_dev(div1, "class", "timer-item");
-    			add_location(div1, file, 24, 0, 557);
+    			add_location(div1, file, 33, 0, 762);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -748,21 +746,29 @@ var app = (function () {
     function instance($$self, $$props, $$invalidate) {
     	let $timer;
     	let { timeLimit } = $$props;
-    	let { isActive } = $$props;
+    	let isTimerActive;
+
+    	isActive.subscribe(val => {
+    		isTimerActive = val;
+    	});
+
     	let timer = tweened(timeLimit);
     	validate_store(timer, "timer");
     	component_subscribe($$self, timer, value => $$invalidate(1, $timer = value));
 
     	setInterval(
     		() => {
-    			if (isActive) {
-    				if ($timer > 0) set_store_value(timer, $timer--, $timer);
+    			if (isTimerActive) {
+    				if ($timer > 0) set_store_value(timer, $timer--, $timer); else {
+    					isComplete.set(true);
+    					isActive.set(false);
+    				}
     			}
     		},
     		1000
     	);
 
-    	const writable_props = ["timeLimit", "isActive"];
+    	const writable_props = ["timeLimit"];
 
     	Object.keys($$props).forEach(key => {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<Timer> was created with unknown prop '${key}'`);
@@ -773,7 +779,6 @@ var app = (function () {
 
     	$$self.$$set = $$props => {
     		if ("timeLimit" in $$props) $$invalidate(0, timeLimit = $$props.timeLimit);
-    		if ("isActive" in $$props) $$invalidate(6, isActive = $$props.isActive);
     	};
 
     	$$self.$capture_state = () => ({
@@ -781,8 +786,10 @@ var app = (function () {
     		onDestroy,
     		afterUpdate,
     		tweened,
-    		timeLimit,
+    		isComplete,
     		isActive,
+    		timeLimit,
+    		isTimerActive,
     		timer,
     		$timer,
     		minutes,
@@ -792,7 +799,7 @@ var app = (function () {
 
     	$$self.$inject_state = $$props => {
     		if ("timeLimit" in $$props) $$invalidate(0, timeLimit = $$props.timeLimit);
-    		if ("isActive" in $$props) $$invalidate(6, isActive = $$props.isActive);
+    		if ("isTimerActive" in $$props) isTimerActive = $$props.isTimerActive;
     		if ("timer" in $$props) $$invalidate(5, timer = $$props.timer);
     		if ("minutes" in $$props) $$invalidate(2, minutes = $$props.minutes);
     		if ("minname" in $$props) $$invalidate(3, minname = $$props.minname);
@@ -821,13 +828,13 @@ var app = (function () {
     		}
     	};
 
-    	return [timeLimit, $timer, minutes, minname, seconds, timer, isActive];
+    	return [timeLimit, $timer, minutes, minname, seconds, timer];
     }
 
     class Timer extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance, create_fragment, safe_not_equal, { timeLimit: 0, isActive: 6 });
+    		init(this, options, instance, create_fragment, safe_not_equal, { timeLimit: 0 });
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
@@ -842,10 +849,6 @@ var app = (function () {
     		if (/*timeLimit*/ ctx[0] === undefined && !("timeLimit" in props)) {
     			console.warn("<Timer> was created without expected prop 'timeLimit'");
     		}
-
-    		if (/*isActive*/ ctx[6] === undefined && !("isActive" in props)) {
-    			console.warn("<Timer> was created without expected prop 'isActive'");
-    		}
     	}
 
     	get timeLimit() {
@@ -853,14 +856,6 @@ var app = (function () {
     	}
 
     	set timeLimit(value) {
-    		throw new Error("<Timer>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get isActive() {
-    		throw new Error("<Timer>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set isActive(value) {
     		throw new Error("<Timer>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
     }
@@ -880,7 +875,7 @@ var app = (function () {
     			toggle_class(span, "active", /*isActive*/ ctx[2]);
     			toggle_class(span, "incorrect", /*isCorrect*/ ctx[1] === false);
     			toggle_class(span, "correct", /*isCorrect*/ ctx[1] === true);
-    			add_location(span, file$1, 27, 0, 413);
+    			add_location(span, file$1, 23, 0, 313);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -926,13 +921,6 @@ var app = (function () {
     	let { word } = $$props;
     	let { isCorrect } = $$props;
     	let { isActive } = $$props;
-
-    	afterUpdate(() => {
-    		isActive
-    		? document.querySelector("span").scrollIntoView()
-    		: null;
-    	});
-
     	const writable_props = ["word", "isCorrect", "isActive"];
 
     	Object.keys($$props).forEach(key => {
@@ -1025,7 +1013,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (26:2) {#each words as word}
+    // (23:2) {#each words as word}
     function create_each_block(ctx) {
     	let word;
     	let t;
@@ -1045,7 +1033,7 @@ var app = (function () {
     			create_component(word.$$.fragment);
     			t = space();
     			br = element("br");
-    			add_location(br, file$2, 27, 4, 623);
+    			add_location(br, file$2, 24, 4, 490);
     		},
     		m: function mount(target, anchor) {
     			mount_component(word, target, anchor);
@@ -1080,7 +1068,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(26:2) {#each words as word}",
+    		source: "(23:2) {#each words as word}",
     		ctx
     	});
 
@@ -1111,8 +1099,8 @@ var app = (function () {
     			}
 
     			attr_dev(div, "id", "words");
-    			attr_dev(div, "class", "svelte-1bo69zb");
-    			add_location(div, file$2, 24, 0, 555);
+    			attr_dev(div, "class", "svelte-15zsl6q");
+    			add_location(div, file$2, 21, 0, 422);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -1209,11 +1197,8 @@ var app = (function () {
     		afterUpdate,
     		beforeUpdate,
     		onMount,
-    		App,
     		Timer,
-    		TypingTest,
     		Word,
-    		TestForm,
     		words
     	});
 
@@ -1259,7 +1244,6 @@ var app = (function () {
     	let displaywords;
     	let t;
     	let div;
-    	let input;
     	let current;
     	let mounted;
     	let dispose;
@@ -1274,14 +1258,10 @@ var app = (function () {
     			create_component(displaywords.$$.fragment);
     			t = space();
     			div = element("div");
-    			input = element("input");
-    			attr_dev(input, "type", "text");
-    			attr_dev(input, "id", "user_input");
-    			attr_dev(input, "autocomplete", "false");
-    			attr_dev(input, "data-lpignore", "true");
-    			attr_dev(input, "class", "svelte-11pzvzl");
-    			add_location(input, file$3, 61, 2, 1442);
-    			add_location(div, file$3, 60, 0, 1434);
+    			attr_dev(div, "class", "typing_input svelte-1t0luzc");
+    			attr_dev(div, "contenteditable", "true");
+    			if (/*userInput*/ ctx[1] === void 0) add_render_callback(() => /*div_input_handler*/ ctx[4].call(div));
+    			add_location(div, file$3, 91, 0, 2230);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -1290,15 +1270,18 @@ var app = (function () {
     			mount_component(displaywords, target, anchor);
     			insert_dev(target, t, anchor);
     			insert_dev(target, div, anchor);
-    			append_dev(div, input);
-    			set_input_value(input, /*userInput*/ ctx[1]);
+
+    			if (/*userInput*/ ctx[1] !== void 0) {
+    				div.innerHTML = /*userInput*/ ctx[1];
+    			}
+
     			current = true;
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(input, "keydown", /*startTimer*/ ctx[2], { once: true }, false, false),
-    					listen_dev(input, "keydown", /*keyHandler*/ ctx[3], false, false, false),
-    					listen_dev(input, "input", /*input_input_handler*/ ctx[4])
+    					listen_dev(div, "keydown", /*startTimer*/ ctx[2], { once: true }, false, false),
+    					listen_dev(div, "keydown", /*handleInput*/ ctx[3], false, false, false),
+    					listen_dev(div, "input", /*div_input_handler*/ ctx[4])
     				];
 
     				mounted = true;
@@ -1309,8 +1292,8 @@ var app = (function () {
     			if (dirty & /*words*/ 1) displaywords_changes.words = /*words*/ ctx[0];
     			displaywords.$set(displaywords_changes);
 
-    			if (dirty & /*userInput*/ 2 && input.value !== /*userInput*/ ctx[1]) {
-    				set_input_value(input, /*userInput*/ ctx[1]);
+    			if (dirty & /*userInput*/ 2 && /*userInput*/ ctx[1] !== div.innerHTML) {
+    				div.innerHTML = /*userInput*/ ctx[1];
     			}
     		},
     		i: function intro(local) {
@@ -1348,15 +1331,23 @@ var app = (function () {
     	let current = "";
     	let stats = { numWords: 0, correct: 0 };
 
-    	onMount(() => {
-    		document.getElementById("user_input").focus();
-    	});
+    	const updateWordStatus = (word, stats, isCorrect) => {
+    		word.isCorrect = isCorrect;
+    		stats.numWords++;
 
+    		if (isCorrect) {
+    			stats.correct++;
+    		}
+    	};
+
+    	// onMount(() => {
+    	//   document.getElementById("test_input").focus();
+    	// });
     	const startTimer = () => {
     		isActive.update(val => val = true);
     	};
 
-    	const keyHandler = e => {
+    	const handleInput = e => {
     		current = words[stats.numWords];
     		console.log(current);
 
@@ -1373,6 +1364,7 @@ var app = (function () {
     			if (stats.numWords !== words.length) {
     				$$invalidate(0, words[stats.numWords + 1].isActive = true, words);
     			} //TODO: handle case where we run out of words before end of timer
+    			//maybe check timer length and make additional fetch for more words?
 
     			stats.numWords++;
     			$$invalidate(1, userInput = "");
@@ -1399,8 +1391,8 @@ var app = (function () {
     	let { $$slots = {}, $$scope } = $$props;
     	validate_slots("TestForm", $$slots, []);
 
-    	function input_input_handler() {
-    		userInput = this.value;
+    	function div_input_handler() {
+    		userInput = this.innerHTML;
     		$$invalidate(1, userInput);
     	}
 
@@ -1417,8 +1409,9 @@ var app = (function () {
     		userInput,
     		current,
     		stats,
+    		updateWordStatus,
     		startTimer,
-    		keyHandler
+    		handleInput
     	});
 
     	$$self.$inject_state = $$props => {
@@ -1432,7 +1425,7 @@ var app = (function () {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [words, userInput, startTimer, keyHandler, input_input_handler];
+    	return [words, userInput, startTimer, handleInput, div_input_handler];
     }
 
     class TestForm extends SvelteComponentDev {
@@ -1464,115 +1457,34 @@ var app = (function () {
     	}
     }
 
-    // temp words to avoid overloading API endpoint
-    const data = ["mislocate", "paleae", "festooning", "arciform", "mastectomies", "sterlings", "charily", "defoamers", "legating", "leses", "dopa", "neuronal", "firn", "transmogrified", "outvaunt", "cacomixls", "telfords", "kerchiefed", "smolts", "industrialist", "ecesic", "footfaults", "unstacked", "stewarded", "paella", "cantina", "alpacas", "superhardened", "murrhine", "stairwells", "imbody", "disembogued", "bandleaders", "andalusites", "engirdled", "forgets", "cottonmouth", "yapok", "monolithically", "globalising", "flailing", "permuted", "cullers", "scorner", "enders", "panzer", "alpenglow", "enrollments", "inflexion", "spreads"];
+    /* src/components/Header/Header.svelte generated by Svelte v3.24.1 */
 
-    /* src/components/TypingTest.svelte generated by Svelte v3.24.1 */
-
-    const file$4 = "src/components/TypingTest.svelte";
+    const file$4 = "src/components/Header/Header.svelte";
 
     function create_fragment$4(ctx) {
-    	let div2;
+    	let div;
     	let h1;
-    	let t1;
-    	let timer;
-    	let t2;
-    	let testform;
-    	let t3;
-    	let div0;
-    	let t5;
-    	let div1;
-    	let p;
-    	let t6;
-    	let strong;
-    	let t8;
-    	let current;
-
-    	timer = new Timer({
-    			props: {
-    				timeLimit,
-    				isActive: /*isActive_value*/ ctx[0]
-    			},
-    			$$inline: true
-    		});
-
-    	testform = new TestForm({
-    			props: { words: /*wordObjArr*/ ctx[1] },
-    			$$inline: true
-    		});
 
     	const block = {
     		c: function create() {
-    			div2 = element("div");
+    			div = element("div");
     			h1 = element("h1");
     			h1.textContent = "Typing Test";
-    			t1 = space();
-    			create_component(timer.$$.fragment);
-    			t2 = space();
-    			create_component(testform.$$.fragment);
-    			t3 = space();
-    			div0 = element("div");
-    			div0.textContent = "Begin typing to start the test!";
-    			t5 = space();
-    			div1 = element("div");
-    			p = element("p");
-    			t6 = text("Press\n      ");
-    			strong = element("strong");
-    			strong.textContent = "Enter";
-    			t8 = text("\n      to skip the current word.");
-    			add_location(h1, file$4, 50, 2, 1133);
-    			add_location(div0, file$4, 54, 2, 1241);
-    			add_location(strong, file$4, 59, 6, 1334);
-    			add_location(p, file$4, 57, 4, 1312);
-    			attr_dev(div1, "id", "help_text");
-    			add_location(div1, file$4, 56, 2, 1287);
-    			attr_dev(div2, "id", "test");
-    			attr_dev(div2, "class", "svelte-5p20sc");
-    			add_location(div2, file$4, 49, 0, 1115);
+    			add_location(h1, file$4, 5, 2, 29);
+    			add_location(div, file$4, 4, 0, 21);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, div2, anchor);
-    			append_dev(div2, h1);
-    			append_dev(div2, t1);
-    			mount_component(timer, div2, null);
-    			append_dev(div2, t2);
-    			mount_component(testform, div2, null);
-    			append_dev(div2, t3);
-    			append_dev(div2, div0);
-    			append_dev(div2, t5);
-    			append_dev(div2, div1);
-    			append_dev(div1, p);
-    			append_dev(p, t6);
-    			append_dev(p, strong);
-    			append_dev(p, t8);
-    			current = true;
+    			insert_dev(target, div, anchor);
+    			append_dev(div, h1);
     		},
-    		p: function update(ctx, [dirty]) {
-    			const timer_changes = {};
-    			if (dirty & /*isActive_value*/ 1) timer_changes.isActive = /*isActive_value*/ ctx[0];
-    			timer.$set(timer_changes);
-    			const testform_changes = {};
-    			if (dirty & /*wordObjArr*/ 2) testform_changes.words = /*wordObjArr*/ ctx[1];
-    			testform.$set(testform_changes);
-    		},
-    		i: function intro(local) {
-    			if (current) return;
-    			transition_in(timer.$$.fragment, local);
-    			transition_in(testform.$$.fragment, local);
-    			current = true;
-    		},
-    		o: function outro(local) {
-    			transition_out(timer.$$.fragment, local);
-    			transition_out(testform.$$.fragment, local);
-    			current = false;
-    		},
+    		p: noop,
+    		i: noop,
+    		o: noop,
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(div2);
-    			destroy_component(timer);
-    			destroy_component(testform);
+    			if (detaching) detach_dev(div);
     		}
     	};
 
@@ -1587,12 +1499,156 @@ var app = (function () {
     	return block;
     }
 
+    function instance$4($$self, $$props) {
+    	const writable_props = [];
+
+    	Object.keys($$props).forEach(key => {
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<Header> was created with unknown prop '${key}'`);
+    	});
+
+    	let { $$slots = {}, $$scope } = $$props;
+    	validate_slots("Header", $$slots, []);
+    	return [];
+    }
+
+    class Header extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+    		init(this, options, instance$4, create_fragment$4, safe_not_equal, {});
+
+    		dispatch_dev("SvelteRegisterComponent", {
+    			component: this,
+    			tagName: "Header",
+    			options,
+    			id: create_fragment$4.name
+    		});
+    	}
+    }
+
+    // temp words to avoid overloading API endpoint
+    const data = ["mislocate", "paleae", "festooning", "arciform", "mastectomies", "sterlings", "charily", "defoamers", "legating", "leses", "dopa", "neuronal", "firn", "transmogrified", "outvaunt", "cacomixls", "telfords", "kerchiefed", "smolts", "industrialist", "ecesic", "footfaults", "unstacked", "stewarded", "paella", "cantina", "alpacas", "superhardened", "murrhine", "stairwells", "imbody", "disembogued", "bandleaders", "andalusites", "engirdled", "forgets", "cottonmouth", "yapok", "monolithically", "globalising", "flailing", "permuted", "cullers", "scorner", "enders", "panzer", "alpenglow", "enrollments", "inflexion", "spreads"];
+
+    /* src/components/TypingTest.svelte generated by Svelte v3.24.1 */
+
+    const file$5 = "src/components/TypingTest.svelte";
+
+    function create_fragment$5(ctx) {
+    	let header;
+    	let t0;
+    	let div2;
+    	let timer;
+    	let t1;
+    	let testform;
+    	let t2;
+    	let div0;
+    	let t4;
+    	let div1;
+    	let p;
+    	let t5;
+    	let strong;
+    	let t7;
+    	let current;
+    	header = new Header({ $$inline: true });
+    	timer = new Timer({ props: { timeLimit }, $$inline: true });
+
+    	testform = new TestForm({
+    			props: { words: /*wordObjArr*/ ctx[0] },
+    			$$inline: true
+    		});
+
+    	const block = {
+    		c: function create() {
+    			create_component(header.$$.fragment);
+    			t0 = space();
+    			div2 = element("div");
+    			create_component(timer.$$.fragment);
+    			t1 = space();
+    			create_component(testform.$$.fragment);
+    			t2 = space();
+    			div0 = element("div");
+    			div0.textContent = "Begin typing to start the test!";
+    			t4 = space();
+    			div1 = element("div");
+    			p = element("p");
+    			t5 = text("Press\n      ");
+    			strong = element("strong");
+    			strong.textContent = "Enter";
+    			t7 = text("\n      to skip the current word.");
+    			add_location(div0, file$5, 64, 2, 1494);
+    			add_location(strong, file$5, 69, 6, 1587);
+    			add_location(p, file$5, 67, 4, 1565);
+    			attr_dev(div1, "id", "help_text");
+    			add_location(div1, file$5, 66, 2, 1540);
+    			attr_dev(div2, "id", "test");
+    			attr_dev(div2, "class", "svelte-5p20sc");
+    			add_location(div2, file$5, 60, 0, 1417);
+    		},
+    		l: function claim(nodes) {
+    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    		},
+    		m: function mount(target, anchor) {
+    			mount_component(header, target, anchor);
+    			insert_dev(target, t0, anchor);
+    			insert_dev(target, div2, anchor);
+    			mount_component(timer, div2, null);
+    			append_dev(div2, t1);
+    			mount_component(testform, div2, null);
+    			append_dev(div2, t2);
+    			append_dev(div2, div0);
+    			append_dev(div2, t4);
+    			append_dev(div2, div1);
+    			append_dev(div1, p);
+    			append_dev(p, t5);
+    			append_dev(p, strong);
+    			append_dev(p, t7);
+    			current = true;
+    		},
+    		p: function update(ctx, [dirty]) {
+    			const testform_changes = {};
+    			if (dirty & /*wordObjArr*/ 1) testform_changes.words = /*wordObjArr*/ ctx[0];
+    			testform.$set(testform_changes);
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(header.$$.fragment, local);
+    			transition_in(timer.$$.fragment, local);
+    			transition_in(testform.$$.fragment, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(header.$$.fragment, local);
+    			transition_out(timer.$$.fragment, local);
+    			transition_out(testform.$$.fragment, local);
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			destroy_component(header, detaching);
+    			if (detaching) detach_dev(t0);
+    			if (detaching) detach_dev(div2);
+    			destroy_component(timer);
+    			destroy_component(testform);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_fragment$5.name,
+    		type: "component",
+    		source: "",
+    		ctx
+    	});
+
+    	return block;
+    }
+
     const timeLimit = 90;
     const numWords = 50;
 
-    function instance$4($$self, $$props, $$invalidate) {
+    function instance$5($$self, $$props, $$invalidate) {
     	let isActive_value;
-    	const unsubscribe = isActive.subscribe(val => $$invalidate(0, isActive_value = val));
+    	const timerActiveUnsubscribe = isActive.subscribe(val => isActive_value = val);
+    	let isComplete_value;
+    	const timerCompleteUnsubscribe = isComplete.subscribe(val => isComplete_value = val);
     	const apiUrl = `https://random-word-api.herokuapp.com/word?number=${numWords}`;
 
     	//let words = [];
@@ -1603,11 +1659,12 @@ var app = (function () {
     	//   words = await res.json();
     	// });
     	onMount(() => {
-    		$$invalidate(1, wordObjArr = data.map((word, i) => {
+    		//TODO: move this to async onMount with fetch
+    		$$invalidate(0, wordObjArr = data.map(word => {
     			return { word, isCorrect: null, isActive: false };
     		}));
 
-    		$$invalidate(1, wordObjArr[0].isActive = true, wordObjArr);
+    		$$invalidate(0, wordObjArr[0].isActive = true, wordObjArr);
     	});
 
     	const writable_props = [];
@@ -1622,11 +1679,15 @@ var app = (function () {
     	$$self.$capture_state = () => ({
     		onMount,
     		isActive,
+    		isComplete,
     		Timer,
     		TestForm,
+    		Header,
     		words: data,
     		isActive_value,
-    		unsubscribe,
+    		timerActiveUnsubscribe,
+    		isComplete_value,
+    		timerCompleteUnsubscribe,
     		timeLimit,
     		numWords,
     		apiUrl,
@@ -1634,35 +1695,36 @@ var app = (function () {
     	});
 
     	$$self.$inject_state = $$props => {
-    		if ("isActive_value" in $$props) $$invalidate(0, isActive_value = $$props.isActive_value);
-    		if ("wordObjArr" in $$props) $$invalidate(1, wordObjArr = $$props.wordObjArr);
+    		if ("isActive_value" in $$props) isActive_value = $$props.isActive_value;
+    		if ("isComplete_value" in $$props) isComplete_value = $$props.isComplete_value;
+    		if ("wordObjArr" in $$props) $$invalidate(0, wordObjArr = $$props.wordObjArr);
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [isActive_value, wordObjArr];
+    	return [wordObjArr];
     }
 
     class TypingTest extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$4, create_fragment$4, safe_not_equal, {});
+    		init(this, options, instance$5, create_fragment$5, safe_not_equal, {});
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
     			tagName: "TypingTest",
     			options,
-    			id: create_fragment$4.name
+    			id: create_fragment$5.name
     		});
     	}
     }
 
     /* src/App.svelte generated by Svelte v3.24.1 */
-    const file$5 = "src/App.svelte";
+    const file$6 = "src/App.svelte";
 
-    function create_fragment$5(ctx) {
+    function create_fragment$6(ctx) {
     	let main;
     	let typingtest;
     	let current;
@@ -1672,7 +1734,7 @@ var app = (function () {
     		c: function create() {
     			main = element("main");
     			create_component(typingtest.$$.fragment);
-    			add_location(main, file$5, 4, 0, 79);
+    			add_location(main, file$6, 4, 0, 79);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -1700,7 +1762,7 @@ var app = (function () {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_fragment$5.name,
+    		id: create_fragment$6.name,
     		type: "component",
     		source: "",
     		ctx
@@ -1709,7 +1771,7 @@ var app = (function () {
     	return block;
     }
 
-    function instance$5($$self, $$props, $$invalidate) {
+    function instance$6($$self, $$props, $$invalidate) {
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
@@ -1725,13 +1787,13 @@ var app = (function () {
     class App extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$5, create_fragment$5, safe_not_equal, {});
+    		init(this, options, instance$6, create_fragment$6, safe_not_equal, {});
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
     			tagName: "App",
     			options,
-    			id: create_fragment$5.name
+    			id: create_fragment$6.name
     		});
     	}
     }

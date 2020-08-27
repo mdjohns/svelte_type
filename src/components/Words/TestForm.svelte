@@ -11,14 +11,21 @@
     correct: 0,
   };
 
-  onMount(() => {
-    document.getElementById("user_input").focus();
-  });
+  const updateWordStatus = (word, stats, isCorrect) => {
+    word.isCorrect = isCorrect;
+    stats.numWords++;
+    if (isCorrect) {
+      stats.correct++;
+    }
+  };
+  // onMount(() => {
+  //   document.getElementById("test_input").focus();
+  // });
 
   const startTimer = () => {
     isActive.update((val) => (val = true));
   };
-  const keyHandler = (e) => {
+  const handleInput = (e) => {
     current = words[stats.numWords];
     console.log(current);
     if (e.key == " ") {
@@ -32,6 +39,7 @@
       if (stats.numWords !== words.length) {
         words[stats.numWords + 1].isActive = true;
         //TODO: handle case where we run out of words before end of timer
+        //maybe check timer length and make additional fetch for more words?
       }
       stats.numWords++;
       userInput = "";
@@ -51,6 +59,20 @@
 </script>
 
 <style>
+  .typing_input {
+    -moz-appearance: textfield;
+    -webkit-appearance: textfield;
+    background-color: white;
+    background-color: -moz-field;
+    border: 1px solid #eee;
+    box-shadow: 1px 1px 1px 0 lightgray inset;
+    font: -moz-field;
+    font: -webkit-small-control;
+    margin-top: 5px;
+    padding: 2px 3px;
+    width: 200px;
+    height: 100%;
+  }
   #user_input {
     width: 200px;
   }
@@ -58,13 +80,18 @@
 
 <DisplayWords {words} />
 
-<div>
+<!-- <div>
   <input
     type="text"
     id="user_input"
     on:keydown|once={startTimer}
-    on:keydown={keyHandler}
-    bind:value={userInput}
+    on:keydown={handleInput}
     autocomplete="false"
     data-lpignore="true" />
-</div>
+</div> -->
+<div
+  class="typing_input"
+  contenteditable="true"
+  on:keydown|once={startTimer}
+  on:keydown={handleInput}
+  bind:innerHTML={userInput} />

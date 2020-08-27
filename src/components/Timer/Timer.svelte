@@ -1,13 +1,22 @@
 <script>
   import { onMount, onDestroy, afterUpdate } from "svelte";
   import { tweened } from "svelte/motion";
+  import { isComplete, isActive } from "../utils/stores";
   export let timeLimit;
-  export let isActive;
+
+  let isTimerActive;
+  isActive.subscribe((val) => {
+    isTimerActive = val;
+  });
 
   let timer = tweened(timeLimit);
   setInterval(() => {
-    if (isActive) {
+    if (isTimerActive) {
       if ($timer > 0) $timer--;
+      else {
+        isComplete.set(true);
+        isActive.set(false);
+      }
     }
   }, 1000);
 

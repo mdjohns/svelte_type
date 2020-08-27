@@ -1,18 +1,15 @@
 <script>
   import { afterUpdate, beforeUpdate, onMount } from "svelte";
-  import App from "../../App.svelte";
   import Timer from "../Timer/Timer.svelte";
-  import TypingTest from "../TypingTest.svelte";
   import Word from "../Words/Word.svelte";
-  import TestForm from "./TestForm.svelte";
 
   export let words = [];
 </script>
 
 <style>
   #words {
-    width: 200px;
-    height: 100px;
+    width: 12em;
+    height: 10em;
     overflow: hidden;
     user-select: none;
     -moz-user-select: none;

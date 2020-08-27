@@ -3,10 +3,6 @@
   export let word;
   export let isCorrect;
   export let isActive;
-
-  afterUpdate(() => {
-    isActive ? document.querySelector("span").scrollIntoView() : null;
-  });
 </script>
 
 <style>

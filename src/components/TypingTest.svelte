@@ -1,14 +1,23 @@
 <script>
+  //TODO: If isComplete, display Results
   import { onMount } from "svelte";
-  import { isActive } from "./utils/stores";
+  import { isActive, isComplete } from "./utils/stores";
   import Timer from "./Timer/Timer.svelte";
   import TestForm from "./Words/TestForm.svelte";
+  import Header from "./Header/Header.svelte";
 
   //TEST DATA
   import words from "./utils/testApiData";
 
   let isActive_value;
-  const unsubscribe = isActive.subscribe((val) => (isActive_value = val));
+  const timerActiveUnsubscribe = isActive.subscribe(
+    (val) => (isActive_value = val)
+  );
+  let isComplete_value;
+  const timerCompleteUnsubscribe = isComplete.subscribe(
+    (val) => (isComplete_value = val)
+  );
+
   const timeLimit = 90;
   const numWords = 50;
   const apiUrl = `https://random-word-api.herokuapp.com/word?number=${numWords}`;
@@ -20,7 +29,8 @@
   // });
 
   onMount(() => {
-    wordObjArr = words.map((word, i) => {
+    //TODO: move this to async onMount with fetch
+    wordObjArr = words.map((word) => {
       return {
         word: word,
         isCorrect: null,
@@ -47,9 +57,9 @@
   }
 </style>
 
+<Header />
 <div id="test">
-  <h1>Typing Test</h1>
-  <Timer {timeLimit} isActive={isActive_value} />
+  <Timer {timeLimit} />
   <TestForm words={wordObjArr} />
 
   <div>Begin typing to start the test!</div>
