@@ -2,6 +2,7 @@
   import { onMount, afterUpdate } from "svelte";
   import DisplayWords from "./DisplayWords.svelte";
   import { isActive } from "../utils/stores";
+
   export let words;
   let userInput = "";
   let current = "";
@@ -11,13 +12,6 @@
     correct: 0,
   };
 
-  const updateWordStatus = (word, stats, isCorrect) => {
-    word.isCorrect = isCorrect;
-    stats.numWords++;
-    if (isCorrect) {
-      stats.correct++;
-    }
-  };
   // onMount(() => {
   //   document.getElementById("test_input").focus();
   // });
@@ -28,6 +22,19 @@
   const handleInput = (e) => {
     current = words[stats.numWords];
     console.log(current);
+
+    // Check current progress
+    if (userInput !== current.word.substr(0, userInput.length)) {
+      current.isCorrect = false;
+      words[stats.numWords] = { ...current };
+    }
+    // Reset correct-ness
+    else {
+      current.isCorrect = null;
+      words[stats.numWords] = { ...current };
+    }
+
+    //Submit word on "space"
     if (e.key == " ") {
       e.preventDefault();
       if (userInput === current.word) {
@@ -41,13 +48,17 @@
         //TODO: handle case where we run out of words before end of timer
         //maybe check timer length and make additional fetch for more words?
       }
+      current.isActive = false;
+      words[stats.numWords] = { ...current };
       stats.numWords++;
       userInput = "";
-      current.isActive = false;
-    } else if (e.key == "Enter") {
+    }
+    // Skip word on "Enter"
+    else if (e.key == "Enter") {
       e.preventDefault();
       current.isActive = false;
       current.isCorrect = false;
+      words[stats.numWords] = { ...current };
       userInput = "";
       stats.numWords++;
       if (stats.numWords !== words.length) {
@@ -72,9 +83,6 @@
     padding: 2px 3px;
     width: 200px;
     height: 100%;
-  }
-  #user_input {
-    width: 200px;
   }
 </style>
 

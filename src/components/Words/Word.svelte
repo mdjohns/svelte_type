@@ -18,8 +18,12 @@
   .active {
     background: #dddddd;
   }
+  .incorrect-active {
+    background: red;
+    color: white;
+  }
   .incorrect {
-    color: darkred;
+    color: red;
   }
   .correct {
     color: green;
@@ -29,7 +33,8 @@
 <span
   bind:this={wordElement}
   class:active={isActive}
-  class:incorrect={isCorrect === false}
-  class:correct={isCorrect === true}>
+  class:incorrect-active={isActive && isCorrect === false}
+  class:incorrect={!isActive && isCorrect === false}
+  class:correct={!isActive && isCorrect === true}>
   {word}
 </span>

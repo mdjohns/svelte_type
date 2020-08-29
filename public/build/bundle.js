@@ -871,11 +871,12 @@ var app = (function () {
     		c: function create() {
     			span = element("span");
     			t = text(/*word*/ ctx[0]);
-    			attr_dev(span, "class", "svelte-4h7lal");
+    			attr_dev(span, "class", "svelte-1sr4ad2");
     			toggle_class(span, "active", /*isActive*/ ctx[2]);
-    			toggle_class(span, "incorrect", /*isCorrect*/ ctx[1] === false);
-    			toggle_class(span, "correct", /*isCorrect*/ ctx[1] === true);
-    			add_location(span, file$1, 28, 0, 425);
+    			toggle_class(span, "incorrect-active", /*isActive*/ ctx[2] && /*isCorrect*/ ctx[1] === false);
+    			toggle_class(span, "incorrect", !/*isActive*/ ctx[2] && /*isCorrect*/ ctx[1] === false);
+    			toggle_class(span, "correct", !/*isActive*/ ctx[2] && /*isCorrect*/ ctx[1] === true);
+    			add_location(span, file$1, 32, 0, 486);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -892,12 +893,16 @@ var app = (function () {
     				toggle_class(span, "active", /*isActive*/ ctx[2]);
     			}
 
-    			if (dirty & /*isCorrect*/ 2) {
-    				toggle_class(span, "incorrect", /*isCorrect*/ ctx[1] === false);
+    			if (dirty & /*isActive, isCorrect*/ 6) {
+    				toggle_class(span, "incorrect-active", /*isActive*/ ctx[2] && /*isCorrect*/ ctx[1] === false);
     			}
 
-    			if (dirty & /*isCorrect*/ 2) {
-    				toggle_class(span, "correct", /*isCorrect*/ ctx[1] === true);
+    			if (dirty & /*isActive, isCorrect*/ 6) {
+    				toggle_class(span, "incorrect", !/*isActive*/ ctx[2] && /*isCorrect*/ ctx[1] === false);
+    			}
+
+    			if (dirty & /*isActive, isCorrect*/ 6) {
+    				toggle_class(span, "correct", !/*isActive*/ ctx[2] && /*isCorrect*/ ctx[1] === true);
     			}
     		},
     		i: noop,
@@ -1282,10 +1287,10 @@ var app = (function () {
     			create_component(displaywords.$$.fragment);
     			t = space();
     			div = element("div");
-    			attr_dev(div, "class", "typing_input svelte-1t0luzc");
+    			attr_dev(div, "class", "typing_input svelte-4aoqt4");
     			attr_dev(div, "contenteditable", "true");
     			if (/*userInput*/ ctx[1] === void 0) add_render_callback(() => /*div_input_handler*/ ctx[4].call(div));
-    			add_location(div, file$3, 91, 0, 2230);
+    			add_location(div, file$3, 99, 0, 2484);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -1355,15 +1360,6 @@ var app = (function () {
     	let current = "";
     	let stats = { numWords: 0, correct: 0 };
 
-    	const updateWordStatus = (word, stats, isCorrect) => {
-    		word.isCorrect = isCorrect;
-    		stats.numWords++;
-
-    		if (isCorrect) {
-    			stats.correct++;
-    		}
-    	};
-
     	// onMount(() => {
     	//   document.getElementById("test_input").focus();
     	// });
@@ -1375,6 +1371,17 @@ var app = (function () {
     		current = words[stats.numWords];
     		console.log(current);
 
+    		// Check current progress
+    		if (userInput !== current.word.substr(0, userInput.length)) {
+    			current.isCorrect = false;
+    			$$invalidate(0, words[stats.numWords] = { ...current }, words);
+    		} else // Reset correct-ness
+    		{
+    			current.isCorrect = null;
+    			$$invalidate(0, words[stats.numWords] = { ...current }, words);
+    		}
+
+    		//Submit word on "space"
     		if (e.key == " ") {
     			e.preventDefault();
 
@@ -1390,13 +1397,16 @@ var app = (function () {
     			} //TODO: handle case where we run out of words before end of timer
     			//maybe check timer length and make additional fetch for more words?
 
+    			current.isActive = false;
+    			$$invalidate(0, words[stats.numWords] = { ...current }, words);
     			stats.numWords++;
     			$$invalidate(1, userInput = "");
-    			current.isActive = false;
-    		} else if (e.key == "Enter") {
+    		} else // Skip word on "Enter"
+    		if (e.key == "Enter") {
     			e.preventDefault();
     			current.isActive = false;
     			current.isCorrect = false;
+    			$$invalidate(0, words[stats.numWords] = { ...current }, words);
     			$$invalidate(1, userInput = "");
     			stats.numWords++;
 
@@ -1433,7 +1443,6 @@ var app = (function () {
     		userInput,
     		current,
     		stats,
-    		updateWordStatus,
     		startTimer,
     		handleInput
     	});
