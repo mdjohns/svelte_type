@@ -12,21 +12,22 @@
 
 <style>
   span {
-    color: #000;
-    font-family: serif;
+    color: #eceff4;
+    font-family: monospace;
   }
   .active {
-    background: #dddddd;
+    color: #b48ead;
+    font-weight: bold;
   }
   .incorrect-active {
-    background: red;
+    background: #bf616a;
     color: white;
   }
   .incorrect {
-    color: red;
+    color: #bf616a;
   }
   .correct {
-    color: green;
+    color: #a3be8c;
   }
 </style>
 

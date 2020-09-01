@@ -126,6 +126,9 @@ var app = (function () {
     function children(element) {
         return Array.from(element.childNodes);
     }
+    function set_input_value(input, value) {
+        input.value = value == null ? '' : value;
+    }
     function toggle_class(element, name, toggle) {
         element.classList[toggle ? 'add' : 'remove'](name);
     }
@@ -143,9 +146,6 @@ var app = (function () {
         if (!current_component)
             throw new Error(`Function called outside component initialization`);
         return current_component;
-    }
-    function beforeUpdate(fn) {
-        get_current_component().$$.before_update.push(fn);
     }
     function onMount(fn) {
         get_current_component().$$.on_mount.push(fn);
@@ -171,6 +171,9 @@ var app = (function () {
     }
     function add_render_callback(fn) {
         render_callbacks.push(fn);
+    }
+    function add_flush_callback(fn) {
+        flush_callbacks.push(fn);
     }
     let flushing = false;
     const seen_callbacks = new Set();
@@ -298,6 +301,14 @@ var app = (function () {
     }
     function get_spread_object(spread_props) {
         return typeof spread_props === 'object' && spread_props !== null ? spread_props : {};
+    }
+
+    function bind(component, name, callback) {
+        const index = component.$$.props[name];
+        if (index !== undefined) {
+            component.$$.bound[index] = callback;
+            callback(component.$$.ctx[index]);
+        }
     }
     function create_component(block) {
         block && block.c();
@@ -552,9 +563,6 @@ var app = (function () {
         return { set, update, subscribe };
     }
 
-    const isActive = writable(false);
-    const isComplete = writable(false);
-
     function is_date(obj) {
         return Object.prototype.toString.call(obj) === '[object Date]';
     }
@@ -658,77 +666,72 @@ var app = (function () {
     const file = "src/components/Timer/Timer.svelte";
 
     function create_fragment(ctx) {
-    	let div0;
-    	let span0;
+    	let progress;
+    	let progress_value_value;
     	let t0;
+    	let div;
+    	let span0;
     	let t1;
     	let t2;
     	let t3;
-    	let span1;
     	let t4;
+    	let span1;
     	let t5;
     	let t6;
-    	let div1;
-    	let progress;
-    	let progress_value_value;
 
     	const block = {
     		c: function create() {
-    			div0 = element("div");
-    			span0 = element("span");
-    			t0 = text(/*minutes*/ ctx[2]);
-    			t1 = space();
-    			t2 = text(/*minname*/ ctx[3]);
-    			t3 = space();
-    			span1 = element("span");
-    			t4 = text(/*seconds*/ ctx[4]);
-    			t5 = text("\n  s");
-    			t6 = space();
-    			div1 = element("div");
     			progress = element("progress");
-    			attr_dev(span0, "class", "mins");
-    			add_location(span0, file, 28, 2, 665);
-    			attr_dev(span1, "class", "secs");
-    			add_location(span1, file, 30, 2, 715);
-    			attr_dev(div0, "class", "timer-item");
-    			add_location(div0, file, 27, 0, 638);
+    			t0 = space();
+    			div = element("div");
+    			span0 = element("span");
+    			t1 = text(/*minutes*/ ctx[2]);
+    			t2 = space();
+    			t3 = text(/*minname*/ ctx[3]);
+    			t4 = space();
+    			span1 = element("span");
+    			t5 = text(/*seconds*/ ctx[4]);
+    			t6 = text(" s");
     			progress.value = progress_value_value = /*$timer*/ ctx[1] / /*timeLimit*/ ctx[0];
-    			add_location(progress, file, 34, 2, 789);
-    			attr_dev(div1, "class", "timer-item");
-    			add_location(div1, file, 33, 0, 762);
+    			attr_dev(progress, "class", "svelte-1sfp3ot");
+    			add_location(progress, file, 48, 0, 1041);
+    			attr_dev(span0, "class", "mins");
+    			add_location(span0, file, 51, 2, 1090);
+    			attr_dev(span1, "class", "secs");
+    			add_location(span1, file, 53, 2, 1140);
+    			add_location(div, file, 50, 0, 1082);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, div0, anchor);
-    			append_dev(div0, span0);
-    			append_dev(span0, t0);
-    			append_dev(div0, t1);
-    			append_dev(div0, t2);
-    			append_dev(div0, t3);
-    			append_dev(div0, span1);
-    			append_dev(span1, t4);
-    			append_dev(div0, t5);
-    			insert_dev(target, t6, anchor);
-    			insert_dev(target, div1, anchor);
-    			append_dev(div1, progress);
+    			insert_dev(target, progress, anchor);
+    			insert_dev(target, t0, anchor);
+    			insert_dev(target, div, anchor);
+    			append_dev(div, span0);
+    			append_dev(span0, t1);
+    			append_dev(div, t2);
+    			append_dev(div, t3);
+    			append_dev(div, t4);
+    			append_dev(div, span1);
+    			append_dev(span1, t5);
+    			append_dev(div, t6);
     		},
     		p: function update(ctx, [dirty]) {
-    			if (dirty & /*minutes*/ 4) set_data_dev(t0, /*minutes*/ ctx[2]);
-    			if (dirty & /*minname*/ 8) set_data_dev(t2, /*minname*/ ctx[3]);
-    			if (dirty & /*seconds*/ 16) set_data_dev(t4, /*seconds*/ ctx[4]);
-
     			if (dirty & /*$timer, timeLimit*/ 3 && progress_value_value !== (progress_value_value = /*$timer*/ ctx[1] / /*timeLimit*/ ctx[0])) {
     				prop_dev(progress, "value", progress_value_value);
     			}
+
+    			if (dirty & /*minutes*/ 4) set_data_dev(t1, /*minutes*/ ctx[2]);
+    			if (dirty & /*minname*/ 8) set_data_dev(t3, /*minname*/ ctx[3]);
+    			if (dirty & /*seconds*/ 16) set_data_dev(t5, /*seconds*/ ctx[4]);
     		},
     		i: noop,
     		o: noop,
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(div0);
-    			if (detaching) detach_dev(t6);
-    			if (detaching) detach_dev(div1);
+    			if (detaching) detach_dev(progress);
+    			if (detaching) detach_dev(t0);
+    			if (detaching) detach_dev(div);
     		}
     	};
 
@@ -746,13 +749,15 @@ var app = (function () {
     function instance($$self, $$props, $$invalidate) {
     	let $timer;
     	let { timeLimit } = $$props;
-    	let isTimerActive;
+    	let { isTimerActive } = $$props;
+    	let { isTimerComplete } = $$props;
 
-    	isActive.subscribe(val => {
-    		isTimerActive = val;
-    	});
-
+    	// let isTimerActive;
+    	// isActive.subscribe((val) => {
+    	//   isTimerActive = val;
+    	// });
     	let timer = tweened(timeLimit);
+
     	validate_store(timer, "timer");
     	component_subscribe($$self, timer, value => $$invalidate(1, $timer = value));
 
@@ -760,15 +765,18 @@ var app = (function () {
     		() => {
     			if (isTimerActive) {
     				if ($timer > 0) set_store_value(timer, $timer--, $timer); else {
-    					isComplete.set(true);
-    					isActive.set(false);
+    					// isComplete.set(true);
+    					// isActive.set(false);
+    					$$invalidate(6, isTimerActive = false);
+
+    					$$invalidate(7, isTimerComplete = true);
     				}
     			}
     		},
     		1000
     	);
 
-    	const writable_props = ["timeLimit"];
+    	const writable_props = ["timeLimit", "isTimerActive", "isTimerComplete"];
 
     	Object.keys($$props).forEach(key => {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<Timer> was created with unknown prop '${key}'`);
@@ -779,6 +787,8 @@ var app = (function () {
 
     	$$self.$$set = $$props => {
     		if ("timeLimit" in $$props) $$invalidate(0, timeLimit = $$props.timeLimit);
+    		if ("isTimerActive" in $$props) $$invalidate(6, isTimerActive = $$props.isTimerActive);
+    		if ("isTimerComplete" in $$props) $$invalidate(7, isTimerComplete = $$props.isTimerComplete);
     	};
 
     	$$self.$capture_state = () => ({
@@ -786,10 +796,9 @@ var app = (function () {
     		onDestroy,
     		afterUpdate,
     		tweened,
-    		isComplete,
-    		isActive,
     		timeLimit,
     		isTimerActive,
+    		isTimerComplete,
     		timer,
     		$timer,
     		minutes,
@@ -799,7 +808,8 @@ var app = (function () {
 
     	$$self.$inject_state = $$props => {
     		if ("timeLimit" in $$props) $$invalidate(0, timeLimit = $$props.timeLimit);
-    		if ("isTimerActive" in $$props) isTimerActive = $$props.isTimerActive;
+    		if ("isTimerActive" in $$props) $$invalidate(6, isTimerActive = $$props.isTimerActive);
+    		if ("isTimerComplete" in $$props) $$invalidate(7, isTimerComplete = $$props.isTimerComplete);
     		if ("timer" in $$props) $$invalidate(5, timer = $$props.timer);
     		if ("minutes" in $$props) $$invalidate(2, minutes = $$props.minutes);
     		if ("minname" in $$props) $$invalidate(3, minname = $$props.minname);
@@ -828,13 +838,27 @@ var app = (function () {
     		}
     	};
 
-    	return [timeLimit, $timer, minutes, minname, seconds, timer];
+    	return [
+    		timeLimit,
+    		$timer,
+    		minutes,
+    		minname,
+    		seconds,
+    		timer,
+    		isTimerActive,
+    		isTimerComplete
+    	];
     }
 
     class Timer extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance, create_fragment, safe_not_equal, { timeLimit: 0 });
+
+    		init(this, options, instance, create_fragment, safe_not_equal, {
+    			timeLimit: 0,
+    			isTimerActive: 6,
+    			isTimerComplete: 7
+    		});
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
@@ -849,6 +873,14 @@ var app = (function () {
     		if (/*timeLimit*/ ctx[0] === undefined && !("timeLimit" in props)) {
     			console.warn("<Timer> was created without expected prop 'timeLimit'");
     		}
+
+    		if (/*isTimerActive*/ ctx[6] === undefined && !("isTimerActive" in props)) {
+    			console.warn("<Timer> was created without expected prop 'isTimerActive'");
+    		}
+
+    		if (/*isTimerComplete*/ ctx[7] === undefined && !("isTimerComplete" in props)) {
+    			console.warn("<Timer> was created without expected prop 'isTimerComplete'");
+    		}
     	}
 
     	get timeLimit() {
@@ -858,10 +890,26 @@ var app = (function () {
     	set timeLimit(value) {
     		throw new Error("<Timer>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
+
+    	get isTimerActive() {
+    		throw new Error("<Timer>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set isTimerActive(value) {
+    		throw new Error("<Timer>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get isTimerComplete() {
+    		throw new Error("<Timer>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set isTimerComplete(value) {
+    		throw new Error("<Timer>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
     }
 
-    /* src/components/Words/Word.svelte generated by Svelte v3.24.1 */
-    const file$1 = "src/components/Words/Word.svelte";
+    /* src/components/Test/Word.svelte generated by Svelte v3.24.1 */
+    const file$1 = "src/components/Test/Word.svelte";
 
     function create_fragment$1(ctx) {
     	let span;
@@ -871,12 +919,12 @@ var app = (function () {
     		c: function create() {
     			span = element("span");
     			t = text(/*word*/ ctx[0]);
-    			attr_dev(span, "class", "svelte-1sr4ad2");
+    			attr_dev(span, "class", "svelte-1q002f0");
     			toggle_class(span, "active", /*isActive*/ ctx[2]);
     			toggle_class(span, "incorrect-active", /*isActive*/ ctx[2] && /*isCorrect*/ ctx[1] === false);
     			toggle_class(span, "incorrect", !/*isActive*/ ctx[2] && /*isCorrect*/ ctx[1] === false);
     			toggle_class(span, "correct", !/*isActive*/ ctx[2] && /*isCorrect*/ ctx[1] === true);
-    			add_location(span, file$1, 32, 0, 486);
+    			add_location(span, file$1, 33, 0, 521);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -1032,8 +1080,8 @@ var app = (function () {
     	}
     }
 
-    /* src/components/Words/DisplayWords.svelte generated by Svelte v3.24.1 */
-    const file$2 = "src/components/Words/DisplayWords.svelte";
+    /* src/components/Test/DisplayWords.svelte generated by Svelte v3.24.1 */
+    const file$2 = "src/components/Test/DisplayWords.svelte";
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
@@ -1041,7 +1089,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (24:2) {#each words as word}
+    // (19:2) {#each words as word}
     function create_each_block(ctx) {
     	let word;
     	let t;
@@ -1061,7 +1109,7 @@ var app = (function () {
     			create_component(word.$$.fragment);
     			t = space();
     			br = element("br");
-    			add_location(br, file$2, 25, 4, 536);
+    			add_location(br, file$2, 20, 4, 345);
     		},
     		m: function mount(target, anchor) {
     			mount_component(word, target, anchor);
@@ -1096,7 +1144,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(24:2) {#each words as word}",
+    		source: "(19:2) {#each words as word}",
     		ctx
     	});
 
@@ -1127,8 +1175,8 @@ var app = (function () {
     			}
 
     			attr_dev(div, "id", "words");
-    			attr_dev(div, "class", "svelte-allzgk");
-    			add_location(div, file$2, 22, 0, 468);
+    			attr_dev(div, "class", "svelte-8v8xa3");
+    			add_location(div, file$2, 17, 0, 277);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -1221,15 +1269,7 @@ var app = (function () {
     		if ("words" in $$props) $$invalidate(0, words = $$props.words);
     	};
 
-    	$$self.$capture_state = () => ({
-    		afterUpdate,
-    		beforeUpdate,
-    		onMount,
-    		Timer,
-    		isActive,
-    		Word,
-    		words
-    	});
+    	$$self.$capture_state = () => ({ Word, words });
 
     	$$self.$inject_state = $$props => {
     		if ("words" in $$props) $$invalidate(0, words = $$props.words);
@@ -1264,15 +1304,16 @@ var app = (function () {
     	}
     }
 
-    /* src/components/Words/TestForm.svelte generated by Svelte v3.24.1 */
+    /* src/components/Test/TestForm.svelte generated by Svelte v3.24.1 */
 
     const { console: console_1 } = globals;
-    const file$3 = "src/components/Words/TestForm.svelte";
+    const file$3 = "src/components/Test/TestForm.svelte";
 
     function create_fragment$3(ctx) {
+    	let div;
     	let displaywords;
     	let t;
-    	let div;
+    	let input;
     	let current;
     	let mounted;
     	let dispose;
@@ -1284,33 +1325,31 @@ var app = (function () {
 
     	const block = {
     		c: function create() {
+    			div = element("div");
     			create_component(displaywords.$$.fragment);
     			t = space();
-    			div = element("div");
-    			attr_dev(div, "class", "typing_input svelte-4aoqt4");
-    			attr_dev(div, "contenteditable", "true");
-    			if (/*userInput*/ ctx[1] === void 0) add_render_callback(() => /*div_input_handler*/ ctx[4].call(div));
-    			add_location(div, file$3, 99, 0, 2484);
+    			input = element("input");
+    			attr_dev(input, "class", "typing-input svelte-10xqm95");
+    			add_location(input, file$3, 81, 2, 2104);
+    			attr_dev(div, "class", "container svelte-10xqm95");
+    			add_location(div, file$3, 78, 0, 2050);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
-    			mount_component(displaywords, target, anchor);
-    			insert_dev(target, t, anchor);
     			insert_dev(target, div, anchor);
-
-    			if (/*userInput*/ ctx[1] !== void 0) {
-    				div.innerHTML = /*userInput*/ ctx[1];
-    			}
-
+    			mount_component(displaywords, div, null);
+    			append_dev(div, t);
+    			append_dev(div, input);
+    			set_input_value(input, /*userInput*/ ctx[1]);
     			current = true;
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(div, "keydown", /*startTimer*/ ctx[2], { once: true }, false, false),
-    					listen_dev(div, "keydown", /*handleInput*/ ctx[3], false, false, false),
-    					listen_dev(div, "input", /*div_input_handler*/ ctx[4])
+    					listen_dev(input, "input", /*input_input_handler*/ ctx[6]),
+    					listen_dev(input, "keydown", /*startTimer*/ ctx[2], { once: true }, false, false),
+    					listen_dev(input, "keydown", /*handleInput*/ ctx[3], false, false, false)
     				];
 
     				mounted = true;
@@ -1321,8 +1360,8 @@ var app = (function () {
     			if (dirty & /*words*/ 1) displaywords_changes.words = /*words*/ ctx[0];
     			displaywords.$set(displaywords_changes);
 
-    			if (dirty & /*userInput*/ 2 && /*userInput*/ ctx[1] !== div.innerHTML) {
-    				div.innerHTML = /*userInput*/ ctx[1];
+    			if (dirty & /*userInput*/ 2 && input.value !== /*userInput*/ ctx[1]) {
+    				set_input_value(input, /*userInput*/ ctx[1]);
     			}
     		},
     		i: function intro(local) {
@@ -1335,9 +1374,8 @@ var app = (function () {
     			current = false;
     		},
     		d: function destroy(detaching) {
-    			destroy_component(displaywords, detaching);
-    			if (detaching) detach_dev(t);
     			if (detaching) detach_dev(div);
+    			destroy_component(displaywords);
     			mounted = false;
     			run_all(dispose);
     		}
@@ -1356,29 +1394,27 @@ var app = (function () {
 
     function instance$3($$self, $$props, $$invalidate) {
     	let { words } = $$props;
+    	let { isTimerActive } = $$props;
+    	let { gameStats } = $$props;
     	let userInput = "";
     	let current = "";
-    	let stats = { numWords: 0, correct: 0 };
 
-    	// onMount(() => {
-    	//   document.getElementById("test_input").focus();
-    	// });
     	const startTimer = () => {
-    		isActive.update(val => val = true);
+    		$$invalidate(4, isTimerActive = true);
     	};
 
     	const handleInput = e => {
-    		current = words[stats.numWords];
-    		console.log(current);
+    		current = words[gameStats.numWords];
+    		console.log(userInput);
 
     		// Check current progress
     		if (userInput !== current.word.substr(0, userInput.length)) {
     			current.isCorrect = false;
-    			$$invalidate(0, words[stats.numWords] = { ...current }, words);
+    			$$invalidate(0, words[gameStats.numWords] = { ...current }, words);
     		} else // Reset correct-ness
     		{
     			current.isCorrect = null;
-    			$$invalidate(0, words[stats.numWords] = { ...current }, words);
+    			$$invalidate(0, words[gameStats.numWords] = { ...current }, words);
     		}
 
     		//Submit word on "space"
@@ -1387,36 +1423,36 @@ var app = (function () {
 
     			if (userInput === current.word) {
     				current.isCorrect = true;
-    				stats.correct++;
+    				$$invalidate(5, gameStats.correctWords++, gameStats);
     			} else {
     				current.isCorrect = false;
     			}
 
-    			if (stats.numWords !== words.length) {
-    				$$invalidate(0, words[stats.numWords + 1].isActive = true, words);
+    			if (gameStats.numWords !== words.length) {
+    				$$invalidate(0, words[gameStats.numWords + 1].isActive = true, words);
     			} //TODO: handle case where we run out of words before end of timer
     			//maybe check timer length and make additional fetch for more words?
 
     			current.isActive = false;
-    			$$invalidate(0, words[stats.numWords] = { ...current }, words);
-    			stats.numWords++;
+    			$$invalidate(0, words[gameStats.numWords] = { ...current }, words);
+    			$$invalidate(5, gameStats.numWords++, gameStats);
     			$$invalidate(1, userInput = "");
     		} else // Skip word on "Enter"
     		if (e.key == "Enter") {
     			e.preventDefault();
     			current.isActive = false;
     			current.isCorrect = false;
-    			$$invalidate(0, words[stats.numWords] = { ...current }, words);
+    			$$invalidate(0, words[gameStats.numWords] = { ...current }, words);
     			$$invalidate(1, userInput = "");
-    			stats.numWords++;
+    			$$invalidate(5, gameStats.numWords++, gameStats);
 
-    			if (stats.numWords !== words.length) {
-    				$$invalidate(0, words[stats.numWords].isActive = true, words);
+    			if (gameStats.numWords !== words.length) {
+    				$$invalidate(0, words[gameStats.numWords].isActive = true, words);
     			} //TODO: handle case where we run out of words before end of timer
     		}
     	};
 
-    	const writable_props = ["words"];
+    	const writable_props = ["words", "isTimerActive", "gameStats"];
 
     	Object.keys($$props).forEach(key => {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console_1.warn(`<TestForm> was created with unknown prop '${key}'`);
@@ -1425,46 +1461,57 @@ var app = (function () {
     	let { $$slots = {}, $$scope } = $$props;
     	validate_slots("TestForm", $$slots, []);
 
-    	function div_input_handler() {
-    		userInput = this.innerHTML;
+    	function input_input_handler() {
+    		userInput = this.value;
     		$$invalidate(1, userInput);
     	}
 
     	$$self.$$set = $$props => {
     		if ("words" in $$props) $$invalidate(0, words = $$props.words);
+    		if ("isTimerActive" in $$props) $$invalidate(4, isTimerActive = $$props.isTimerActive);
+    		if ("gameStats" in $$props) $$invalidate(5, gameStats = $$props.gameStats);
     	};
 
     	$$self.$capture_state = () => ({
     		onMount,
     		afterUpdate,
     		DisplayWords,
-    		isActive,
     		words,
+    		isTimerActive,
+    		gameStats,
     		userInput,
     		current,
-    		stats,
     		startTimer,
     		handleInput
     	});
 
     	$$self.$inject_state = $$props => {
     		if ("words" in $$props) $$invalidate(0, words = $$props.words);
+    		if ("isTimerActive" in $$props) $$invalidate(4, isTimerActive = $$props.isTimerActive);
+    		if ("gameStats" in $$props) $$invalidate(5, gameStats = $$props.gameStats);
     		if ("userInput" in $$props) $$invalidate(1, userInput = $$props.userInput);
     		if ("current" in $$props) current = $$props.current;
-    		if ("stats" in $$props) stats = $$props.stats;
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [words, userInput, startTimer, handleInput, div_input_handler];
+    	return [
+    		words,
+    		userInput,
+    		startTimer,
+    		handleInput,
+    		isTimerActive,
+    		gameStats,
+    		input_input_handler
+    	];
     }
 
     class TestForm extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$3, create_fragment$3, safe_not_equal, { words: 0 });
+    		init(this, options, instance$3, create_fragment$3, safe_not_equal, { words: 0, isTimerActive: 4, gameStats: 5 });
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
@@ -1479,6 +1526,14 @@ var app = (function () {
     		if (/*words*/ ctx[0] === undefined && !("words" in props)) {
     			console_1.warn("<TestForm> was created without expected prop 'words'");
     		}
+
+    		if (/*isTimerActive*/ ctx[4] === undefined && !("isTimerActive" in props)) {
+    			console_1.warn("<TestForm> was created without expected prop 'isTimerActive'");
+    		}
+
+    		if (/*gameStats*/ ctx[5] === undefined && !("gameStats" in props)) {
+    			console_1.warn("<TestForm> was created without expected prop 'gameStats'");
+    		}
     	}
 
     	get words() {
@@ -1488,6 +1543,22 @@ var app = (function () {
     	set words(value) {
     		throw new Error("<TestForm>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
+
+    	get isTimerActive() {
+    		throw new Error("<TestForm>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set isTimerActive(value) {
+    		throw new Error("<TestForm>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get gameStats() {
+    		throw new Error("<TestForm>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set gameStats(value) {
+    		throw new Error("<TestForm>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
     }
 
     /* src/components/Header/Header.svelte generated by Svelte v3.24.1 */
@@ -1495,29 +1566,30 @@ var app = (function () {
     const file$4 = "src/components/Header/Header.svelte";
 
     function create_fragment$4(ctx) {
-    	let div;
+    	let header;
     	let h1;
 
     	const block = {
     		c: function create() {
-    			div = element("div");
+    			header = element("header");
     			h1 = element("h1");
     			h1.textContent = "Typing Test";
-    			add_location(h1, file$4, 5, 2, 29);
-    			add_location(div, file$4, 4, 0, 21);
+    			add_location(h1, file$4, 15, 2, 175);
+    			attr_dev(header, "class", "svelte-qmff0m");
+    			add_location(header, file$4, 14, 0, 164);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, div, anchor);
-    			append_dev(div, h1);
+    			insert_dev(target, header, anchor);
+    			append_dev(header, h1);
     		},
     		p: noop,
     		i: noop,
     		o: noop,
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(div);
+    			if (detaching) detach_dev(header);
     		}
     	};
 
@@ -1558,108 +1630,83 @@ var app = (function () {
     	}
     }
 
-    // temp words to avoid overloading API endpoint
-    const data = ["mislocate", "paleae", "festooning", "arciform", "mastectomies", "sterlings", "charily", "defoamers", "legating", "leses", "dopa", "neuronal", "firn", "transmogrified", "outvaunt", "cacomixls", "telfords", "kerchiefed", "smolts", "industrialist", "ecesic", "footfaults", "unstacked", "stewarded", "paella", "cantina", "alpacas", "superhardened", "murrhine", "stairwells", "imbody", "disembogued", "bandleaders", "andalusites", "engirdled", "forgets", "cottonmouth", "yapok", "monolithically", "globalising", "flailing", "permuted", "cullers", "scorner", "enders", "panzer", "alpenglow", "enrollments", "inflexion", "spreads"];
+    /* src/components/Test/Results.svelte generated by Svelte v3.24.1 */
 
-    /* src/components/TypingTest.svelte generated by Svelte v3.24.1 */
-
-    const file$5 = "src/components/TypingTest.svelte";
+    const file$5 = "src/components/Test/Results.svelte";
 
     function create_fragment$5(ctx) {
-    	let header;
-    	let t0;
-    	let div2;
-    	let timer;
+    	let section;
+    	let h2;
     	let t1;
-    	let testform;
+    	let ul;
+    	let li0;
     	let t2;
-    	let div0;
+    	let t3_value = /*gameStats*/ ctx[0].numWords + "";
+    	let t3;
     	let t4;
-    	let div1;
-    	let p;
+    	let li1;
     	let t5;
-    	let strong;
+    	let t6_value = /*gameStats*/ ctx[0].correctWords + "";
+    	let t6;
     	let t7;
-    	let current;
-    	header = new Header({ $$inline: true });
-    	timer = new Timer({ props: { timeLimit }, $$inline: true });
-
-    	testform = new TestForm({
-    			props: { words: /*wordObjArr*/ ctx[0] },
-    			$$inline: true
-    		});
+    	let li2;
+    	let t8;
+    	let t9;
 
     	const block = {
     		c: function create() {
-    			create_component(header.$$.fragment);
-    			t0 = space();
-    			div2 = element("div");
-    			create_component(timer.$$.fragment);
+    			section = element("section");
+    			h2 = element("h2");
+    			h2.textContent = "Results";
     			t1 = space();
-    			create_component(testform.$$.fragment);
-    			t2 = space();
-    			div0 = element("div");
-    			div0.textContent = "Begin typing to start the test!";
+    			ul = element("ul");
+    			li0 = element("li");
+    			t2 = text("Number of Words: ");
+    			t3 = text(t3_value);
     			t4 = space();
-    			div1 = element("div");
-    			p = element("p");
-    			t5 = text("Press\n      ");
-    			strong = element("strong");
-    			strong.textContent = "Enter";
-    			t7 = text("\n      to skip the current word.");
-    			add_location(div0, file$5, 64, 2, 1494);
-    			add_location(strong, file$5, 69, 6, 1587);
-    			add_location(p, file$5, 67, 4, 1565);
-    			attr_dev(div1, "id", "help_text");
-    			add_location(div1, file$5, 66, 2, 1540);
-    			attr_dev(div2, "id", "test");
-    			attr_dev(div2, "class", "svelte-5p20sc");
-    			add_location(div2, file$5, 60, 0, 1417);
+    			li1 = element("li");
+    			t5 = text("Correct Words: ");
+    			t6 = text(t6_value);
+    			t7 = space();
+    			li2 = element("li");
+    			t8 = text("Word Per Minute: ");
+    			t9 = text(/*wpm*/ ctx[1]);
+    			add_location(h2, file$5, 8, 2, 135);
+    			add_location(li0, file$5, 10, 4, 163);
+    			add_location(li1, file$5, 11, 4, 214);
+    			add_location(li2, file$5, 12, 4, 267);
+    			add_location(ul, file$5, 9, 2, 154);
+    			add_location(section, file$5, 7, 0, 123);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
-    			mount_component(header, target, anchor);
-    			insert_dev(target, t0, anchor);
-    			insert_dev(target, div2, anchor);
-    			mount_component(timer, div2, null);
-    			append_dev(div2, t1);
-    			mount_component(testform, div2, null);
-    			append_dev(div2, t2);
-    			append_dev(div2, div0);
-    			append_dev(div2, t4);
-    			append_dev(div2, div1);
-    			append_dev(div1, p);
-    			append_dev(p, t5);
-    			append_dev(p, strong);
-    			append_dev(p, t7);
-    			current = true;
+    			insert_dev(target, section, anchor);
+    			append_dev(section, h2);
+    			append_dev(section, t1);
+    			append_dev(section, ul);
+    			append_dev(ul, li0);
+    			append_dev(li0, t2);
+    			append_dev(li0, t3);
+    			append_dev(ul, t4);
+    			append_dev(ul, li1);
+    			append_dev(li1, t5);
+    			append_dev(li1, t6);
+    			append_dev(ul, t7);
+    			append_dev(ul, li2);
+    			append_dev(li2, t8);
+    			append_dev(li2, t9);
     		},
     		p: function update(ctx, [dirty]) {
-    			const testform_changes = {};
-    			if (dirty & /*wordObjArr*/ 1) testform_changes.words = /*wordObjArr*/ ctx[0];
-    			testform.$set(testform_changes);
+    			if (dirty & /*gameStats*/ 1 && t3_value !== (t3_value = /*gameStats*/ ctx[0].numWords + "")) set_data_dev(t3, t3_value);
+    			if (dirty & /*gameStats*/ 1 && t6_value !== (t6_value = /*gameStats*/ ctx[0].correctWords + "")) set_data_dev(t6, t6_value);
+    			if (dirty & /*wpm*/ 2) set_data_dev(t9, /*wpm*/ ctx[1]);
     		},
-    		i: function intro(local) {
-    			if (current) return;
-    			transition_in(header.$$.fragment, local);
-    			transition_in(timer.$$.fragment, local);
-    			transition_in(testform.$$.fragment, local);
-    			current = true;
-    		},
-    		o: function outro(local) {
-    			transition_out(header.$$.fragment, local);
-    			transition_out(timer.$$.fragment, local);
-    			transition_out(testform.$$.fragment, local);
-    			current = false;
-    		},
+    		i: noop,
+    		o: noop,
     		d: function destroy(detaching) {
-    			destroy_component(header, detaching);
-    			if (detaching) detach_dev(t0);
-    			if (detaching) detach_dev(div2);
-    			destroy_component(timer);
-    			destroy_component(testform);
+    			if (detaching) detach_dev(section);
     		}
     	};
 
@@ -1674,18 +1721,485 @@ var app = (function () {
     	return block;
     }
 
-    const timeLimit = 90;
+    function instance$5($$self, $$props, $$invalidate) {
+    	let { gameStats } = $$props;
+    	let { timeLimit } = $$props;
+    	const writable_props = ["gameStats", "timeLimit"];
+
+    	Object.keys($$props).forEach(key => {
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<Results> was created with unknown prop '${key}'`);
+    	});
+
+    	let { $$slots = {}, $$scope } = $$props;
+    	validate_slots("Results", $$slots, []);
+
+    	$$self.$$set = $$props => {
+    		if ("gameStats" in $$props) $$invalidate(0, gameStats = $$props.gameStats);
+    		if ("timeLimit" in $$props) $$invalidate(2, timeLimit = $$props.timeLimit);
+    	};
+
+    	$$self.$capture_state = () => ({ gameStats, timeLimit, wpm });
+
+    	$$self.$inject_state = $$props => {
+    		if ("gameStats" in $$props) $$invalidate(0, gameStats = $$props.gameStats);
+    		if ("timeLimit" in $$props) $$invalidate(2, timeLimit = $$props.timeLimit);
+    		if ("wpm" in $$props) $$invalidate(1, wpm = $$props.wpm);
+    	};
+
+    	let wpm;
+
+    	if ($$props && "$$inject" in $$props) {
+    		$$self.$inject_state($$props.$$inject);
+    	}
+
+    	$$self.$$.update = () => {
+    		if ($$self.$$.dirty & /*gameStats, timeLimit*/ 5) {
+    			 $$invalidate(1, wpm = gameStats.correctWords / timeLimit * 60);
+    		}
+    	};
+
+    	return [gameStats, wpm, timeLimit];
+    }
+
+    class Results extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+    		init(this, options, instance$5, create_fragment$5, safe_not_equal, { gameStats: 0, timeLimit: 2 });
+
+    		dispatch_dev("SvelteRegisterComponent", {
+    			component: this,
+    			tagName: "Results",
+    			options,
+    			id: create_fragment$5.name
+    		});
+
+    		const { ctx } = this.$$;
+    		const props = options.props || {};
+
+    		if (/*gameStats*/ ctx[0] === undefined && !("gameStats" in props)) {
+    			console.warn("<Results> was created without expected prop 'gameStats'");
+    		}
+
+    		if (/*timeLimit*/ ctx[2] === undefined && !("timeLimit" in props)) {
+    			console.warn("<Results> was created without expected prop 'timeLimit'");
+    		}
+    	}
+
+    	get gameStats() {
+    		throw new Error("<Results>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set gameStats(value) {
+    		throw new Error("<Results>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get timeLimit() {
+    		throw new Error("<Results>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set timeLimit(value) {
+    		throw new Error("<Results>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+    }
+
+    const white = '#F8F8F9';
+    const lightGrey = '#CDD0D6';
+    const darkerGrey = '#A5A6A8';
+    const darkestGrey = '#828889';
+    const purple = '#583D61';
+
+    var Styles = /*#__PURE__*/Object.freeze({
+        __proto__: null,
+        white: white,
+        lightGrey: lightGrey,
+        darkerGrey: darkerGrey,
+        darkestGrey: darkestGrey,
+        purple: purple
+    });
+
+    // temp words to avoid overloading API endpoint
+    const data = ["mislocate", "paleae", "festooning", "arciform", "mastectomies", "sterlings", "charily", "defoamers", "legating", "leses", "dopa", "neuronal", "firn", "transmogrified", "outvaunt", "cacomixls", "telfords", "kerchiefed", "smolts", "industrialist", "ecesic", "footfaults", "unstacked", "stewarded", "paella", "cantina", "alpacas", "superhardened", "murrhine", "stairwells", "imbody", "disembogued", "bandleaders", "andalusites", "engirdled", "forgets", "cottonmouth", "yapok", "monolithically", "globalising", "flailing", "permuted", "cullers", "scorner", "enders", "panzer", "alpenglow", "enrollments", "inflexion", "spreads"];
+
+    /* src/components/TypingTest.svelte generated by Svelte v3.24.1 */
+
+    const file$6 = "src/components/TypingTest.svelte";
+
+    // (54:2) {#if !isTimerComplete}
+    function create_if_block_1(ctx) {
+    	let section0;
+    	let timer;
+    	let updating_isTimerActive;
+    	let updating_isTimerComplete;
+    	let t0;
+    	let testform;
+    	let updating_isTimerActive_1;
+    	let updating_isTimerComplete_1;
+    	let updating_gameStats;
+    	let t1;
+    	let section1;
+    	let span0;
+    	let t3;
+    	let br;
+    	let t4;
+    	let span1;
+    	let t5;
+    	let strong;
+    	let t7;
+    	let current;
+
+    	function timer_isTimerActive_binding(value) {
+    		/*timer_isTimerActive_binding*/ ctx[4].call(null, value);
+    	}
+
+    	function timer_isTimerComplete_binding(value) {
+    		/*timer_isTimerComplete_binding*/ ctx[5].call(null, value);
+    	}
+
+    	let timer_props = { timeLimit };
+
+    	if (/*isTimerActive*/ ctx[1] !== void 0) {
+    		timer_props.isTimerActive = /*isTimerActive*/ ctx[1];
+    	}
+
+    	if (/*isTimerComplete*/ ctx[2] !== void 0) {
+    		timer_props.isTimerComplete = /*isTimerComplete*/ ctx[2];
+    	}
+
+    	timer = new Timer({ props: timer_props, $$inline: true });
+    	binding_callbacks.push(() => bind(timer, "isTimerActive", timer_isTimerActive_binding));
+    	binding_callbacks.push(() => bind(timer, "isTimerComplete", timer_isTimerComplete_binding));
+
+    	function testform_isTimerActive_binding(value) {
+    		/*testform_isTimerActive_binding*/ ctx[6].call(null, value);
+    	}
+
+    	function testform_isTimerComplete_binding(value) {
+    		/*testform_isTimerComplete_binding*/ ctx[7].call(null, value);
+    	}
+
+    	function testform_gameStats_binding(value) {
+    		/*testform_gameStats_binding*/ ctx[8].call(null, value);
+    	}
+
+    	let testform_props = { words: /*wordObjArr*/ ctx[0] };
+
+    	if (/*isTimerActive*/ ctx[1] !== void 0) {
+    		testform_props.isTimerActive = /*isTimerActive*/ ctx[1];
+    	}
+
+    	if (/*isTimerComplete*/ ctx[2] !== void 0) {
+    		testform_props.isTimerComplete = /*isTimerComplete*/ ctx[2];
+    	}
+
+    	if (/*gameStats*/ ctx[3] !== void 0) {
+    		testform_props.gameStats = /*gameStats*/ ctx[3];
+    	}
+
+    	testform = new TestForm({ props: testform_props, $$inline: true });
+    	binding_callbacks.push(() => bind(testform, "isTimerActive", testform_isTimerActive_binding));
+    	binding_callbacks.push(() => bind(testform, "isTimerComplete", testform_isTimerComplete_binding));
+    	binding_callbacks.push(() => bind(testform, "gameStats", testform_gameStats_binding));
+
+    	const block = {
+    		c: function create() {
+    			section0 = element("section");
+    			create_component(timer.$$.fragment);
+    			t0 = space();
+    			create_component(testform.$$.fragment);
+    			t1 = space();
+    			section1 = element("section");
+    			span0 = element("span");
+    			span0.textContent = "Begin typing to start the test!";
+    			t3 = space();
+    			br = element("br");
+    			t4 = space();
+    			span1 = element("span");
+    			t5 = text("Press ");
+    			strong = element("strong");
+    			strong.textContent = "Enter";
+    			t7 = text(" to skip the current word.");
+    			add_location(section0, file$6, 54, 4, 1210);
+    			add_location(span0, file$6, 64, 6, 1464);
+    			add_location(br, file$6, 65, 6, 1516);
+    			add_location(strong, file$6, 66, 18, 1541);
+    			add_location(span1, file$6, 66, 6, 1529);
+    			attr_dev(section1, "id", "help-text");
+    			add_location(section1, file$6, 63, 4, 1433);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, section0, anchor);
+    			mount_component(timer, section0, null);
+    			append_dev(section0, t0);
+    			mount_component(testform, section0, null);
+    			insert_dev(target, t1, anchor);
+    			insert_dev(target, section1, anchor);
+    			append_dev(section1, span0);
+    			append_dev(section1, t3);
+    			append_dev(section1, br);
+    			append_dev(section1, t4);
+    			append_dev(section1, span1);
+    			append_dev(span1, t5);
+    			append_dev(span1, strong);
+    			append_dev(span1, t7);
+    			current = true;
+    		},
+    		p: function update(ctx, dirty) {
+    			const timer_changes = {};
+
+    			if (!updating_isTimerActive && dirty & /*isTimerActive*/ 2) {
+    				updating_isTimerActive = true;
+    				timer_changes.isTimerActive = /*isTimerActive*/ ctx[1];
+    				add_flush_callback(() => updating_isTimerActive = false);
+    			}
+
+    			if (!updating_isTimerComplete && dirty & /*isTimerComplete*/ 4) {
+    				updating_isTimerComplete = true;
+    				timer_changes.isTimerComplete = /*isTimerComplete*/ ctx[2];
+    				add_flush_callback(() => updating_isTimerComplete = false);
+    			}
+
+    			timer.$set(timer_changes);
+    			const testform_changes = {};
+    			if (dirty & /*wordObjArr*/ 1) testform_changes.words = /*wordObjArr*/ ctx[0];
+
+    			if (!updating_isTimerActive_1 && dirty & /*isTimerActive*/ 2) {
+    				updating_isTimerActive_1 = true;
+    				testform_changes.isTimerActive = /*isTimerActive*/ ctx[1];
+    				add_flush_callback(() => updating_isTimerActive_1 = false);
+    			}
+
+    			if (!updating_isTimerComplete_1 && dirty & /*isTimerComplete*/ 4) {
+    				updating_isTimerComplete_1 = true;
+    				testform_changes.isTimerComplete = /*isTimerComplete*/ ctx[2];
+    				add_flush_callback(() => updating_isTimerComplete_1 = false);
+    			}
+
+    			if (!updating_gameStats && dirty & /*gameStats*/ 8) {
+    				updating_gameStats = true;
+    				testform_changes.gameStats = /*gameStats*/ ctx[3];
+    				add_flush_callback(() => updating_gameStats = false);
+    			}
+
+    			testform.$set(testform_changes);
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(timer.$$.fragment, local);
+    			transition_in(testform.$$.fragment, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(timer.$$.fragment, local);
+    			transition_out(testform.$$.fragment, local);
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(section0);
+    			destroy_component(timer);
+    			destroy_component(testform);
+    			if (detaching) detach_dev(t1);
+    			if (detaching) detach_dev(section1);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block_1.name,
+    		type: "if",
+    		source: "(54:2) {#if !isTimerComplete}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (71:2) {#if isTimerComplete}
+    function create_if_block(ctx) {
+    	let results;
+    	let updating_gameStats;
+    	let current;
+
+    	function results_gameStats_binding(value) {
+    		/*results_gameStats_binding*/ ctx[9].call(null, value);
+    	}
+
+    	let results_props = { timeLimit };
+
+    	if (/*gameStats*/ ctx[3] !== void 0) {
+    		results_props.gameStats = /*gameStats*/ ctx[3];
+    	}
+
+    	results = new Results({ props: results_props, $$inline: true });
+    	binding_callbacks.push(() => bind(results, "gameStats", results_gameStats_binding));
+
+    	const block = {
+    		c: function create() {
+    			create_component(results.$$.fragment);
+    		},
+    		m: function mount(target, anchor) {
+    			mount_component(results, target, anchor);
+    			current = true;
+    		},
+    		p: function update(ctx, dirty) {
+    			const results_changes = {};
+
+    			if (!updating_gameStats && dirty & /*gameStats*/ 8) {
+    				updating_gameStats = true;
+    				results_changes.gameStats = /*gameStats*/ ctx[3];
+    				add_flush_callback(() => updating_gameStats = false);
+    			}
+
+    			results.$set(results_changes);
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(results.$$.fragment, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(results.$$.fragment, local);
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			destroy_component(results, detaching);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block.name,
+    		type: "if",
+    		source: "(71:2) {#if isTimerComplete}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function create_fragment$6(ctx) {
+    	let div;
+    	let header;
+    	let t0;
+    	let t1;
+    	let current;
+    	header = new Header({ $$inline: true });
+    	let if_block0 = !/*isTimerComplete*/ ctx[2] && create_if_block_1(ctx);
+    	let if_block1 = /*isTimerComplete*/ ctx[2] && create_if_block(ctx);
+
+    	const block = {
+    		c: function create() {
+    			div = element("div");
+    			create_component(header.$$.fragment);
+    			t0 = space();
+    			if (if_block0) if_block0.c();
+    			t1 = space();
+    			if (if_block1) if_block1.c();
+    			attr_dev(div, "class", "flex-container svelte-17mlq8c");
+    			add_location(div, file$6, 51, 0, 1139);
+    		},
+    		l: function claim(nodes) {
+    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+    			mount_component(header, div, null);
+    			append_dev(div, t0);
+    			if (if_block0) if_block0.m(div, null);
+    			append_dev(div, t1);
+    			if (if_block1) if_block1.m(div, null);
+    			current = true;
+    		},
+    		p: function update(ctx, [dirty]) {
+    			if (!/*isTimerComplete*/ ctx[2]) {
+    				if (if_block0) {
+    					if_block0.p(ctx, dirty);
+
+    					if (dirty & /*isTimerComplete*/ 4) {
+    						transition_in(if_block0, 1);
+    					}
+    				} else {
+    					if_block0 = create_if_block_1(ctx);
+    					if_block0.c();
+    					transition_in(if_block0, 1);
+    					if_block0.m(div, t1);
+    				}
+    			} else if (if_block0) {
+    				group_outros();
+
+    				transition_out(if_block0, 1, 1, () => {
+    					if_block0 = null;
+    				});
+
+    				check_outros();
+    			}
+
+    			if (/*isTimerComplete*/ ctx[2]) {
+    				if (if_block1) {
+    					if_block1.p(ctx, dirty);
+
+    					if (dirty & /*isTimerComplete*/ 4) {
+    						transition_in(if_block1, 1);
+    					}
+    				} else {
+    					if_block1 = create_if_block(ctx);
+    					if_block1.c();
+    					transition_in(if_block1, 1);
+    					if_block1.m(div, null);
+    				}
+    			} else if (if_block1) {
+    				group_outros();
+
+    				transition_out(if_block1, 1, 1, () => {
+    					if_block1 = null;
+    				});
+
+    				check_outros();
+    			}
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(header.$$.fragment, local);
+    			transition_in(if_block0);
+    			transition_in(if_block1);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(header.$$.fragment, local);
+    			transition_out(if_block0);
+    			transition_out(if_block1);
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+    			destroy_component(header);
+    			if (if_block0) if_block0.d();
+    			if (if_block1) if_block1.d();
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_fragment$6.name,
+    		type: "component",
+    		source: "",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    const timeLimit = 30;
     const numWords = 50;
 
-    function instance$5($$self, $$props, $$invalidate) {
-    	let isActive_value;
-    	const timerActiveUnsubscribe = isActive.subscribe(val => isActive_value = val);
-    	let isComplete_value;
-    	const timerCompleteUnsubscribe = isComplete.subscribe(val => isComplete_value = val);
+    function instance$6($$self, $$props, $$invalidate) {
     	const apiUrl = `https://random-word-api.herokuapp.com/word?number=${numWords}`;
 
     	//let words = [];
     	let wordObjArr;
+
+    	let isTimerActive = false;
+    	let isTimerComplete = false;
+    	let gameStats = { numWords: 0, correctWords: 0 };
 
     	// onMount(async () => {
     	//   const res = await fetch(apiUrl);
@@ -1709,55 +2223,96 @@ var app = (function () {
     	let { $$slots = {}, $$scope } = $$props;
     	validate_slots("TypingTest", $$slots, []);
 
+    	function timer_isTimerActive_binding(value) {
+    		isTimerActive = value;
+    		$$invalidate(1, isTimerActive);
+    	}
+
+    	function timer_isTimerComplete_binding(value) {
+    		isTimerComplete = value;
+    		$$invalidate(2, isTimerComplete);
+    	}
+
+    	function testform_isTimerActive_binding(value) {
+    		isTimerActive = value;
+    		$$invalidate(1, isTimerActive);
+    	}
+
+    	function testform_isTimerComplete_binding(value) {
+    		isTimerComplete = value;
+    		$$invalidate(2, isTimerComplete);
+    	}
+
+    	function testform_gameStats_binding(value) {
+    		gameStats = value;
+    		$$invalidate(3, gameStats);
+    	}
+
+    	function results_gameStats_binding(value) {
+    		gameStats = value;
+    		$$invalidate(3, gameStats);
+    	}
+
     	$$self.$capture_state = () => ({
     		onMount,
-    		isActive,
-    		isComplete,
     		Timer,
     		TestForm,
     		Header,
-    		words: data,
-    		isActive_value,
-    		timerActiveUnsubscribe,
-    		isComplete_value,
-    		timerCompleteUnsubscribe,
+    		Results,
+    		Styles,
     		timeLimit,
     		numWords,
     		apiUrl,
-    		wordObjArr
+    		words: data,
+    		wordObjArr,
+    		isTimerActive,
+    		isTimerComplete,
+    		gameStats
     	});
 
     	$$self.$inject_state = $$props => {
-    		if ("isActive_value" in $$props) isActive_value = $$props.isActive_value;
-    		if ("isComplete_value" in $$props) isComplete_value = $$props.isComplete_value;
     		if ("wordObjArr" in $$props) $$invalidate(0, wordObjArr = $$props.wordObjArr);
+    		if ("isTimerActive" in $$props) $$invalidate(1, isTimerActive = $$props.isTimerActive);
+    		if ("isTimerComplete" in $$props) $$invalidate(2, isTimerComplete = $$props.isTimerComplete);
+    		if ("gameStats" in $$props) $$invalidate(3, gameStats = $$props.gameStats);
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [wordObjArr];
+    	return [
+    		wordObjArr,
+    		isTimerActive,
+    		isTimerComplete,
+    		gameStats,
+    		timer_isTimerActive_binding,
+    		timer_isTimerComplete_binding,
+    		testform_isTimerActive_binding,
+    		testform_isTimerComplete_binding,
+    		testform_gameStats_binding,
+    		results_gameStats_binding
+    	];
     }
 
     class TypingTest extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$5, create_fragment$5, safe_not_equal, {});
+    		init(this, options, instance$6, create_fragment$6, safe_not_equal, {});
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
     			tagName: "TypingTest",
     			options,
-    			id: create_fragment$5.name
+    			id: create_fragment$6.name
     		});
     	}
     }
 
     /* src/App.svelte generated by Svelte v3.24.1 */
-    const file$6 = "src/App.svelte";
+    const file$7 = "src/App.svelte";
 
-    function create_fragment$6(ctx) {
+    function create_fragment$7(ctx) {
     	let main;
     	let typingtest;
     	let current;
@@ -1767,7 +2322,7 @@ var app = (function () {
     		c: function create() {
     			main = element("main");
     			create_component(typingtest.$$.fragment);
-    			add_location(main, file$6, 4, 0, 79);
+    			add_location(main, file$7, 4, 0, 79);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -1795,7 +2350,7 @@ var app = (function () {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_fragment$6.name,
+    		id: create_fragment$7.name,
     		type: "component",
     		source: "",
     		ctx
@@ -1804,7 +2359,7 @@ var app = (function () {
     	return block;
     }
 
-    function instance$6($$self, $$props, $$invalidate) {
+    function instance$7($$self, $$props, $$invalidate) {
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
@@ -1820,13 +2375,13 @@ var app = (function () {
     class App extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$6, create_fragment$6, safe_not_equal, {});
+    		init(this, options, instance$7, create_fragment$7, safe_not_equal, {});
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
     			tagName: "App",
     			options,
-    			id: create_fragment$6.name
+    			id: create_fragment$7.name
     		});
     	}
     }
