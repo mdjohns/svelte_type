@@ -5,8 +5,8 @@
 
 <style>
   #words {
-    width: 80vw;
-    height: 40vh;
+    display: block;
+    padding: 1.4rem;
     overflow: hidden;
     user-select: none;
     -moz-user-select: none;
@@ -16,8 +16,8 @@
 </style>
 
 <div id="words">
-  {#each words as word}
+  {#each words as word, i}
     <Word {...word} />
-    <br />
+    <!-- {#if i !== 0 && i % 4 === 0}<br />{/if} -->
   {/each}
 </div>

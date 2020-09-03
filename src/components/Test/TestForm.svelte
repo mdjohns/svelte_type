@@ -7,14 +7,18 @@
   export let gameStats;
 
   let userInput = "";
+  let inputElement;
   let current = "";
 
+  onMount(() => {
+    inputElement.focus();
+  });
   const startTimer = () => {
     isTimerActive = true;
   };
   const handleInput = (e) => {
+    //TODO: Can this be refactored? A lot going on here
     current = words[gameStats.numWords];
-    console.log(userInput);
     // Check current progress
     if (userInput !== current.word.substr(0, userInput.length)) {
       current.isCorrect = false;
@@ -63,15 +67,21 @@
 
 <style>
   .container {
+    flex-grow: 2;
     background-color: #3b4252;
-    border-radius: 4px;
+    max-width: 40rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.4rem;
   }
   .typing-input {
     background-color: #4c566a;
     color: #eceff4;
     font-family: monospace;
     font-size: large;
-    width: 80vw;
+    width: 50%;
     border: none;
   }
 </style>
@@ -81,6 +91,7 @@
 
   <input
     class="typing-input"
+    bind:this={inputElement}
     bind:value={userInput}
     on:keydown|once={startTimer}
     on:keydown={handleInput} />

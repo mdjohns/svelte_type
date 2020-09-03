@@ -1,16 +1,30 @@
 <script>
-  //TODO: Styling
+  //TODO: Styspanng
   export let gameStats;
   export let timeLimit;
 
-  $: wpm = (gameStats.correctWords / timeLimit) * 60;
+  $: wpm = ((gameStats.correctWords / timeLimit) * 60).toFixed(1);
 </script>
+
+<style>
+  section {
+    display: flex;
+    padding: 2rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  span {
+    font-family: monospace;
+    font-size: large;
+  }
+</style>
 
 <section>
   <h2>Results</h2>
-  <ul>
-    <li>Number of Words: {gameStats.numWords}</li>
-    <li>Correct Words: {gameStats.correctWords}</li>
-    <li>Word Per Minute: {wpm}</li>
-  </ul>
+
+  <span>Number of Words: {gameStats.numWords}</span>
+  <span>Correct Words: {gameStats.correctWords}</span>
+  <span>Word Per Minute: {wpm}</span>
 </section>
