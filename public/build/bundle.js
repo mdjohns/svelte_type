@@ -932,15 +932,15 @@ var app = (function () {
     			t5 = text(/*seconds*/ ctx[4]);
     			t6 = text(" s");
     			progress.value = progress_value_value = /*$timer*/ ctx[1] / /*timeLimit*/ ctx[0];
-    			attr_dev(progress, "class", "svelte-i4kawh");
-    			add_location(progress, file$1, 61, 2, 1283);
-    			attr_dev(span0, "class", "mins svelte-i4kawh");
-    			add_location(span0, file$1, 64, 4, 1336);
-    			attr_dev(span1, "class", "secs svelte-i4kawh");
-    			add_location(span1, file$1, 66, 4, 1390);
-    			add_location(div0, file$1, 63, 2, 1326);
-    			attr_dev(div1, "class", "timer-container svelte-i4kawh");
-    			add_location(div1, file$1, 60, 0, 1251);
+    			attr_dev(progress, "class", "svelte-97lydp");
+    			add_location(progress, file$1, 62, 2, 1308);
+    			attr_dev(span0, "class", "mins svelte-97lydp");
+    			add_location(span0, file$1, 65, 4, 1361);
+    			attr_dev(span1, "class", "secs svelte-97lydp");
+    			add_location(span1, file$1, 67, 4, 1415);
+    			add_location(div0, file$1, 64, 2, 1351);
+    			attr_dev(div1, "class", "timer-container svelte-97lydp");
+    			add_location(div1, file$1, 61, 0, 1276);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -1580,9 +1580,9 @@ var app = (function () {
     			t = space();
     			input = element("input");
     			attr_dev(input, "class", "typing-input svelte-bltuvo");
-    			add_location(input, file$4, 91, 2, 2345);
+    			add_location(input, file$4, 104, 2, 2673);
     			attr_dev(div, "class", "container svelte-bltuvo");
-    			add_location(div, file$4, 88, 0, 2291);
+    			add_location(div, file$4, 101, 0, 2619);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -1592,13 +1592,13 @@ var app = (function () {
     			mount_component(displaywords, div, null);
     			append_dev(div, t);
     			append_dev(div, input);
-    			/*input_binding*/ ctx[7](input);
+    			/*input_binding*/ ctx[9](input);
     			set_input_value(input, /*userInput*/ ctx[1]);
     			current = true;
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(input, "input", /*input_input_handler*/ ctx[8]),
+    					listen_dev(input, "input", /*input_input_handler*/ ctx[10]),
     					listen_dev(input, "keydown", /*startTimer*/ ctx[3], { once: true }, false, false),
     					listen_dev(input, "keydown", /*handleInput*/ ctx[4], false, false, false)
     				];
@@ -1627,7 +1627,7 @@ var app = (function () {
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(div);
     			destroy_component(displaywords);
-    			/*input_binding*/ ctx[7](null);
+    			/*input_binding*/ ctx[9](null);
     			mounted = false;
     			run_all(dispose);
     		}
@@ -1647,6 +1647,8 @@ var app = (function () {
     function instance$4($$self, $$props, $$invalidate) {
     	let { words } = $$props;
     	let { isTimerActive } = $$props;
+    	let { isTimerComplete } = $$props;
+    	let { testStarted } = $$props;
     	let { gameStats } = $$props;
     	let userInput = "";
     	let inputElement;
@@ -1658,6 +1660,13 @@ var app = (function () {
 
     	const startTimer = () => {
     		$$invalidate(5, isTimerActive = true);
+    	};
+
+    	//TODO: This doesn't appear to be working. These values might need to be moved to a store
+    	const endTest = () => {
+    		$$invalidate(5, isTimerActive = false);
+    		$$invalidate(7, testStarted = false);
+    		$$invalidate(6, isTimerComplete = true);
     	};
 
     	const handleInput = e => {
@@ -1680,19 +1689,21 @@ var app = (function () {
 
     			if (userInput === current.word) {
     				current.isCorrect = true;
-    				$$invalidate(6, gameStats.correctWords++, gameStats);
+    				$$invalidate(8, gameStats.correctWords++, gameStats);
     			} else {
     				current.isCorrect = false;
     			}
 
     			if (gameStats.numWords !== words.length) {
     				$$invalidate(0, words[gameStats.numWords + 1].isActive = true, words);
-    			} //TODO: handle case where we run out of words before end of timer
-    			//maybe check timer length and make additional fetch for more words?
+    			} else //maybe check timer length and make additional fetch for more words?
+    			{
+    				endTest(); //TODO: handle case where we run out of words before end of timer
+    			}
 
     			current.isActive = false;
     			$$invalidate(0, words[gameStats.numWords] = { ...current }, words);
-    			$$invalidate(6, gameStats.numWords++, gameStats);
+    			$$invalidate(8, gameStats.numWords++, gameStats);
     			$$invalidate(1, userInput = "");
     		} else // Skip word on "Enter"
     		if (e.key == "Enter") {
@@ -1701,15 +1712,17 @@ var app = (function () {
     			current.isCorrect = false;
     			$$invalidate(0, words[gameStats.numWords] = { ...current }, words);
     			$$invalidate(1, userInput = "");
-    			$$invalidate(6, gameStats.numWords++, gameStats);
+    			$$invalidate(8, gameStats.numWords++, gameStats);
 
     			if (gameStats.numWords !== words.length) {
     				$$invalidate(0, words[gameStats.numWords].isActive = true, words);
-    			} //TODO: handle case where we run out of words before end of timer
+    			} else {
+    				endTest(); //TODO: handle case where we run out of words before end of timer
+    			}
     		}
     	};
 
-    	const writable_props = ["words", "isTimerActive", "gameStats"];
+    	const writable_props = ["words", "isTimerActive", "isTimerComplete", "testStarted", "gameStats"];
 
     	Object.keys($$props).forEach(key => {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<TestForm> was created with unknown prop '${key}'`);
@@ -1733,7 +1746,9 @@ var app = (function () {
     	$$self.$$set = $$props => {
     		if ("words" in $$props) $$invalidate(0, words = $$props.words);
     		if ("isTimerActive" in $$props) $$invalidate(5, isTimerActive = $$props.isTimerActive);
-    		if ("gameStats" in $$props) $$invalidate(6, gameStats = $$props.gameStats);
+    		if ("isTimerComplete" in $$props) $$invalidate(6, isTimerComplete = $$props.isTimerComplete);
+    		if ("testStarted" in $$props) $$invalidate(7, testStarted = $$props.testStarted);
+    		if ("gameStats" in $$props) $$invalidate(8, gameStats = $$props.gameStats);
     	};
 
     	$$self.$capture_state = () => ({
@@ -1742,18 +1757,23 @@ var app = (function () {
     		DisplayWords,
     		words,
     		isTimerActive,
+    		isTimerComplete,
+    		testStarted,
     		gameStats,
     		userInput,
     		inputElement,
     		current,
     		startTimer,
+    		endTest,
     		handleInput
     	});
 
     	$$self.$inject_state = $$props => {
     		if ("words" in $$props) $$invalidate(0, words = $$props.words);
     		if ("isTimerActive" in $$props) $$invalidate(5, isTimerActive = $$props.isTimerActive);
-    		if ("gameStats" in $$props) $$invalidate(6, gameStats = $$props.gameStats);
+    		if ("isTimerComplete" in $$props) $$invalidate(6, isTimerComplete = $$props.isTimerComplete);
+    		if ("testStarted" in $$props) $$invalidate(7, testStarted = $$props.testStarted);
+    		if ("gameStats" in $$props) $$invalidate(8, gameStats = $$props.gameStats);
     		if ("userInput" in $$props) $$invalidate(1, userInput = $$props.userInput);
     		if ("inputElement" in $$props) $$invalidate(2, inputElement = $$props.inputElement);
     		if ("current" in $$props) current = $$props.current;
@@ -1770,6 +1790,8 @@ var app = (function () {
     		startTimer,
     		handleInput,
     		isTimerActive,
+    		isTimerComplete,
+    		testStarted,
     		gameStats,
     		input_binding,
     		input_input_handler
@@ -1779,7 +1801,14 @@ var app = (function () {
     class TestForm extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$4, create_fragment$4, safe_not_equal, { words: 0, isTimerActive: 5, gameStats: 6 });
+
+    		init(this, options, instance$4, create_fragment$4, safe_not_equal, {
+    			words: 0,
+    			isTimerActive: 5,
+    			isTimerComplete: 6,
+    			testStarted: 7,
+    			gameStats: 8
+    		});
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
@@ -1799,7 +1828,15 @@ var app = (function () {
     			console.warn("<TestForm> was created without expected prop 'isTimerActive'");
     		}
 
-    		if (/*gameStats*/ ctx[6] === undefined && !("gameStats" in props)) {
+    		if (/*isTimerComplete*/ ctx[6] === undefined && !("isTimerComplete" in props)) {
+    			console.warn("<TestForm> was created without expected prop 'isTimerComplete'");
+    		}
+
+    		if (/*testStarted*/ ctx[7] === undefined && !("testStarted" in props)) {
+    			console.warn("<TestForm> was created without expected prop 'testStarted'");
+    		}
+
+    		if (/*gameStats*/ ctx[8] === undefined && !("gameStats" in props)) {
     			console.warn("<TestForm> was created without expected prop 'gameStats'");
     		}
     	}
@@ -1817,6 +1854,22 @@ var app = (function () {
     	}
 
     	set isTimerActive(value) {
+    		throw new Error("<TestForm>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get isTimerComplete() {
+    		throw new Error("<TestForm>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set isTimerComplete(value) {
+    		throw new Error("<TestForm>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get testStarted() {
+    		throw new Error("<TestForm>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set testStarted(value) {
     		throw new Error("<TestForm>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
 
@@ -2276,7 +2329,7 @@ var app = (function () {
     /* src/components/TypingTest.svelte generated by Svelte v3.24.1 */
     const file$9 = "src/components/TypingTest.svelte";
 
-    // (90:2) {#if testStarted}
+    // (91:2) {#if testStarted}
     function create_if_block_1(ctx) {
     	let await_block_anchor;
     	let promise;
@@ -2290,7 +2343,7 @@ var app = (function () {
     		then: create_then_block,
     		catch: create_catch_block,
     		value: 6,
-    		error: 15,
+    		error: 16,
     		blocks: [,,,]
     	};
 
@@ -2342,20 +2395,20 @@ var app = (function () {
     		block,
     		id: create_if_block_1.name,
     		type: "if",
-    		source: "(90:2) {#if testStarted}",
+    		source: "(91:2) {#if testStarted}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (115:4) {:catch error}
+    // (118:4) {:catch error}
     function create_catch_block(ctx) {
     	let errormessage;
     	let current;
 
     	errormessage = new ErrorMessage({
-    			props: { error: /*error*/ ctx[15] },
+    			props: { error: /*error*/ ctx[16] },
     			$$inline: true
     		});
 
@@ -2386,14 +2439,14 @@ var app = (function () {
     		block,
     		id: create_catch_block.name,
     		type: "catch",
-    		source: "(115:4) {:catch error}",
+    		source: "(118:4) {:catch error}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (93:4) {:then wordsMapped}
+    // (95:4) {:then wordsMapped}
     function create_then_block(ctx) {
     	let if_block_anchor;
     	let current;
@@ -2452,14 +2505,14 @@ var app = (function () {
     		block,
     		id: create_then_block.name,
     		type: "then",
-    		source: "(93:4) {:then wordsMapped}",
+    		source: "(95:4) {:then wordsMapped}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (94:6) {#if !isTimerComplete}
+    // (96:6) {#if !isTimerComplete}
     function create_if_block_2(ctx) {
     	let section0;
     	let timer;
@@ -2470,6 +2523,7 @@ var app = (function () {
     	let testform;
     	let updating_isTimerActive_1;
     	let updating_isTimerComplete_1;
+    	let updating_testStarted_1;
     	let updating_gameStats;
     	let t1;
     	let section1;
@@ -2522,8 +2576,12 @@ var app = (function () {
     		/*testform_isTimerComplete_binding*/ ctx[11].call(null, value);
     	}
 
+    	function testform_testStarted_binding(value) {
+    		/*testform_testStarted_binding*/ ctx[12].call(null, value);
+    	}
+
     	function testform_gameStats_binding(value) {
-    		/*testform_gameStats_binding*/ ctx[12].call(null, value);
+    		/*testform_gameStats_binding*/ ctx[13].call(null, value);
     	}
 
     	let testform_props = { words: /*wordsMapped*/ ctx[6] };
@@ -2536,6 +2594,10 @@ var app = (function () {
     		testform_props.isTimerComplete = /*isTimerComplete*/ ctx[2];
     	}
 
+    	if (/*testStarted*/ ctx[0] !== void 0) {
+    		testform_props.testStarted = /*testStarted*/ ctx[0];
+    	}
+
     	if (/*gameStats*/ ctx[3] !== void 0) {
     		testform_props.gameStats = /*gameStats*/ ctx[3];
     	}
@@ -2543,6 +2605,7 @@ var app = (function () {
     	testform = new TestForm({ props: testform_props, $$inline: true });
     	binding_callbacks.push(() => bind(testform, "isTimerActive", testform_isTimerActive_binding));
     	binding_callbacks.push(() => bind(testform, "isTimerComplete", testform_isTimerComplete_binding));
+    	binding_callbacks.push(() => bind(testform, "testStarted", testform_testStarted_binding));
     	binding_callbacks.push(() => bind(testform, "gameStats", testform_gameStats_binding));
 
     	const block = {
@@ -2563,13 +2626,13 @@ var app = (function () {
     			strong = element("strong");
     			strong.textContent = "Enter";
     			t7 = text(" to skip the current word.");
-    			add_location(section0, file$9, 94, 8, 2329);
-    			add_location(span0, file$9, 109, 10, 2689);
-    			add_location(br, file$9, 110, 10, 2745);
-    			add_location(strong, file$9, 111, 22, 2774);
-    			add_location(span1, file$9, 111, 10, 2762);
+    			add_location(section0, file$9, 96, 8, 2389);
+    			add_location(span0, file$9, 112, 10, 2778);
+    			add_location(br, file$9, 113, 10, 2834);
+    			add_location(strong, file$9, 114, 22, 2863);
+    			add_location(span1, file$9, 114, 10, 2851);
     			attr_dev(section1, "class", "help-text svelte-86ctlz");
-    			add_location(section1, file$9, 108, 8, 2651);
+    			add_location(section1, file$9, 111, 8, 2740);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, section0, anchor);
@@ -2624,6 +2687,12 @@ var app = (function () {
     				add_flush_callback(() => updating_isTimerComplete_1 = false);
     			}
 
+    			if (!updating_testStarted_1 && dirty & /*testStarted*/ 1) {
+    				updating_testStarted_1 = true;
+    				testform_changes.testStarted = /*testStarted*/ ctx[0];
+    				add_flush_callback(() => updating_testStarted_1 = false);
+    			}
+
     			if (!updating_gameStats && dirty & /*gameStats*/ 8) {
     				updating_gameStats = true;
     				testform_changes.gameStats = /*gameStats*/ ctx[3];
@@ -2656,16 +2725,17 @@ var app = (function () {
     		block,
     		id: create_if_block_2.name,
     		type: "if",
-    		source: "(94:6) {#if !isTimerComplete}",
+    		source: "(96:6) {#if !isTimerComplete}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (91:31)        <Circle2 size="60" colorInner="#81a1c1" colorOuter="#8fbcbb" unit="px" />     {:then wordsMapped}
+    // (92:31)        <Circle2 size="60" colorInner="#81a1c1" colorOuter="#8fbcbb" unit="px" />       (Heroku is spinning up the backend and fetching words...)     {:then wordsMapped}
     function create_pending_block(ctx) {
     	let circle2;
+    	let t;
     	let current;
 
     	circle2 = new Circle2({
@@ -2681,9 +2751,11 @@ var app = (function () {
     	const block = {
     		c: function create() {
     			create_component(circle2.$$.fragment);
+    			t = text("\n      (Heroku is spinning up the backend and fetching words...)");
     		},
     		m: function mount(target, anchor) {
     			mount_component(circle2, target, anchor);
+    			insert_dev(target, t, anchor);
     			current = true;
     		},
     		p: noop,
@@ -2698,6 +2770,7 @@ var app = (function () {
     		},
     		d: function destroy(detaching) {
     			destroy_component(circle2, detaching);
+    			if (detaching) detach_dev(t);
     		}
     	};
 
@@ -2705,14 +2778,14 @@ var app = (function () {
     		block,
     		id: create_pending_block.name,
     		type: "pending",
-    		source: "(91:31)        <Circle2 size=\\\"60\\\" colorInner=\\\"#81a1c1\\\" colorOuter=\\\"#8fbcbb\\\" unit=\\\"px\\\" />     {:then wordsMapped}",
+    		source: "(92:31)        <Circle2 size=\\\"60\\\" colorInner=\\\"#81a1c1\\\" colorOuter=\\\"#8fbcbb\\\" unit=\\\"px\\\" />       (Heroku is spinning up the backend and fetching words...)     {:then wordsMapped}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (119:2) {#if isTimerComplete && !testStarted}
+    // (122:2) {#if isTimerComplete && !testStarted}
     function create_if_block(ctx) {
     	let section;
     	let results;
@@ -2725,7 +2798,7 @@ var app = (function () {
     	let dispose;
 
     	function results_gameStats_binding(value) {
-    		/*results_gameStats_binding*/ ctx[13].call(null, value);
+    		/*results_gameStats_binding*/ ctx[14].call(null, value);
     	}
 
     	let results_props = { timeLimit };
@@ -2745,12 +2818,12 @@ var app = (function () {
     			div = element("div");
     			span = element("span");
     			span.textContent = "Go again";
-    			add_location(span, file$9, 121, 29, 3087);
+    			add_location(span, file$9, 124, 29, 3176);
     			attr_dev(div, "id", "reset-button");
     			attr_dev(div, "class", "svelte-86ctlz");
-    			add_location(div, file$9, 121, 6, 3064);
+    			add_location(div, file$9, 124, 6, 3153);
     			attr_dev(section, "class", "results-container svelte-86ctlz");
-    			add_location(section, file$9, 119, 4, 2977);
+    			add_location(section, file$9, 122, 4, 3066);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, section, anchor);
@@ -2797,7 +2870,7 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(119:2) {#if isTimerComplete && !testStarted}",
+    		source: "(122:2) {#if isTimerComplete && !testStarted}",
     		ctx
     	});
 
@@ -2828,7 +2901,7 @@ var app = (function () {
     			t2 = space();
     			create_component(footer.$$.fragment);
     			attr_dev(div, "class", "flex-container svelte-86ctlz");
-    			add_location(div, file$9, 87, 0, 2094);
+    			add_location(div, file$9, 88, 0, 2090);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -2926,12 +2999,19 @@ var app = (function () {
     	return block;
     }
 
-    const timeLimit = 120;
+    const timeLimit = 90;
     const numWords = 60;
 
     function instance$9($$self, $$props, $$invalidate) {
     	const apiUrl = `https://gimme-words.herokuapp.com/word?n=${numWords}`;
-    	let wordsMapped;
+
+    	// State values
+    	let wordsMapped = "";
+
+    	let testStarted = true;
+    	let isTimerActive = false;
+    	let isTimerComplete = false;
+    	let gameStats = { numWords: 0, correctWords: 0 };
 
     	async function reset() {
     		$$invalidate(1, isTimerActive = false);
@@ -2953,12 +3033,6 @@ var app = (function () {
     		return mapped;
     	}
 
-    	//let wordsMapped = fetchAndMapWords(numWords, apiUrl);
-    	let testStarted = true;
-
-    	let isTimerActive = false;
-    	let isTimerComplete = false;
-    	let gameStats = { numWords: 0, correctWords: 0 };
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
@@ -2993,6 +3067,11 @@ var app = (function () {
     		$$invalidate(2, isTimerComplete);
     	}
 
+    	function testform_testStarted_binding(value) {
+    		testStarted = value;
+    		$$invalidate(0, testStarted);
+    	}
+
     	function testform_gameStats_binding(value) {
     		gameStats = value;
     		$$invalidate(3, gameStats);
@@ -3012,17 +3091,18 @@ var app = (function () {
     		ErrorMessage,
     		Results,
     		Styles,
+    		afterUpdate,
     		beforeUpdate,
     		timeLimit,
     		numWords,
     		apiUrl,
     		wordsMapped,
-    		reset,
-    		fetchAndMapWords,
     		testStarted,
     		isTimerActive,
     		isTimerComplete,
-    		gameStats
+    		gameStats,
+    		reset,
+    		fetchAndMapWords
     	});
 
     	$$self.$inject_state = $$props => {
@@ -3050,6 +3130,7 @@ var app = (function () {
     		timer_testStarted_binding,
     		testform_isTimerActive_binding,
     		testform_isTimerComplete_binding,
+    		testform_testStarted_binding,
     		testform_gameStats_binding,
     		results_gameStats_binding
     	];

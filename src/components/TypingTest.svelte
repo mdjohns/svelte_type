@@ -8,12 +8,22 @@
   import ErrorMessage from "./Error/ErrorMessage.svelte";
   import Results from "../components/Test/Results.svelte";
   import * as Styles from "../colors";
-  import { beforeUpdate } from "svelte";
+  import { afterUpdate, beforeUpdate } from "svelte";
 
-  const timeLimit = 120;
+  // Config values
+  const timeLimit = 90;
   const numWords = 60;
   const apiUrl = `https://gimme-words.herokuapp.com/word?n=${numWords}`;
-  let wordsMapped;
+
+  // State values
+  let wordsMapped = "";
+  let testStarted = true;
+  let isTimerActive = false;
+  let isTimerComplete = false;
+  let gameStats = {
+    numWords: 0,
+    correctWords: 0,
+  };
 
   async function reset() {
     isTimerActive = false;
@@ -37,15 +47,6 @@
     mapped[0].isActive = true;
     return mapped;
   }
-
-  //let wordsMapped = fetchAndMapWords(numWords, apiUrl);
-  let testStarted = true;
-  let isTimerActive = false;
-  let isTimerComplete = false;
-  let gameStats = {
-    numWords: 0,
-    correctWords: 0,
-  };
 </script>
 
 <style>
@@ -104,6 +105,7 @@
             words={wordsMapped}
             bind:isTimerActive
             bind:isTimerComplete
+            bind:testStarted
             bind:gameStats />
         </section>
 

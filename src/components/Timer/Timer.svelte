@@ -40,21 +40,22 @@
   }
   progress {
     background-color: #3b4252;
-    border-radius: 0.4rem;
+    border-radius: 3rem;
     border-color: #3b4252;
   }
   progress::-webkit-progress-bar {
     background-color: #3b4252;
     border-color: #3b4252;
+    border-radius: 3rem;
   }
   progress::-webkit-progress-value {
     background-color: #8fbcbb;
+    border-radius: 3rem;
   }
   progress::-moz-progress-bar {
     background-color: #8fbcbb;
-    border-radius: 0.4em;
+    border-radius: 3rem;
     border-color: #3b4252;
-    /* style rules */
   }
 </style>
 
