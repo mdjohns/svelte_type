@@ -90,6 +90,7 @@
   {#if testStarted}
     {#await fetchAndMapWords()}
       <Circle2 size="60" colorInner="#81a1c1" colorOuter="#8fbcbb" unit="px" />
+      (Heroku is spinning up the backend and fetching words...)
     {:then wordsMapped}
       {#if !isTimerComplete}
         <section>
