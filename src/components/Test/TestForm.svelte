@@ -4,6 +4,8 @@
 
   export let words;
   export let isTimerActive;
+  export let isTimerComplete;
+  export let testStarted;
   export let gameStats;
 
   let userInput = "";
@@ -15,6 +17,13 @@
   });
   const startTimer = () => {
     isTimerActive = true;
+  };
+
+  //TODO: This doesn't appear to be working. These values might need to be moved to a store
+  const endTest = () => {
+    isTimerActive = false;
+    testStarted = false;
+    isTimerComplete = true;
   };
   const handleInput = (e) => {
     //TODO: Can this be refactored? A lot going on here
@@ -43,6 +52,8 @@
         words[gameStats.numWords + 1].isActive = true;
         //TODO: handle case where we run out of words before end of timer
         //maybe check timer length and make additional fetch for more words?
+      } else {
+        endTest();
       }
       current.isActive = false;
       words[gameStats.numWords] = { ...current };
@@ -60,6 +71,8 @@
       if (gameStats.numWords !== words.length) {
         words[gameStats.numWords].isActive = true;
         //TODO: handle case where we run out of words before end of timer
+      } else {
+        endTest();
       }
     }
   };
